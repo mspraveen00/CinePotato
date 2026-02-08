@@ -17,7 +17,7 @@ const LetterboxdIcon = ({ className }: { className?: string }) => (
 
 export function LetterboxdSection() {
     return (
-        <section className="px-4 md:px-8 py-8">
+        <section className="px-4 md:px-8 py-4">
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-green-900 to-black p-1 border border-white/10 group cursor-pointer hover:border-green-500/50 transition-colors">
                 <a
                     href="https://letterboxd.com/lists/featured/"

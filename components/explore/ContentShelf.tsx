@@ -14,7 +14,7 @@ interface ContentShelfProps {
 
 export function ContentShelf({ title, items, className }: ContentShelfProps) {
     return (
-        <section className={cn("flex flex-col gap-4 py-8", className)}>
+        <section className={cn("flex flex-col gap-4 py-4", className)}>
             {/* Shelf Header - Padding matches gap (4 = 1rem) */}
             <h2 className="flex items-center gap-2 text-xl font-bold text-white px-4 md:px-8 cursor-pointer group hover:text-blue-400 transition-colors">
                 <span>{title}</span>
@@ -25,7 +25,7 @@ export function ContentShelf({ title, items, className }: ContentShelfProps) {
             <div
                 className="
             flex gap-4 overflow-x-auto pb-4 
-            snap-x snap-mandatory px-4 md:px-8 scroll-pl-4 md:scroll-pl-8
+            snap-x snap-mandatory 
         "
             >
                 {items.map((item, index) => (
@@ -33,6 +33,7 @@ export function ContentShelf({ title, items, className }: ContentShelfProps) {
                         key={item.id}
                         className={cn(
                             "snap-start",
+                            index === 0 && "ml-4 md:ml-8", // Left spacing for first item
                         )}
                     >
                         <MediaCard item={item} />
@@ -42,7 +43,7 @@ export function ContentShelf({ title, items, className }: ContentShelfProps) {
                 {/* See All Card */}
                 <div
                     className={cn(
-                        "snap-start flex flex-col gap-2 w-[140px] md:w-[160px] flex-shrink-0 cursor-pointer group/see-all"
+                        "snap-start flex flex-col gap-2 w-[140px] md:w-[160px] flex-shrink-0 mr-4 md:mr-8 cursor-pointer group/see-all"
                     )}
                 >
                     <div className="aspect-[2/3] w-full overflow-hidden rounded-lg bg-neutral-900 border border-white/10 flex items-center justify-center group-hover/see-all:bg-white/5 transition-colors">
