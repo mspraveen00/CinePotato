@@ -45,6 +45,12 @@ body {
   background: #555;
 }
 
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #333 #000000;
+}
+
 /* Hide scrollbar utility */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
