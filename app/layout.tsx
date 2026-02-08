@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { NavigationLayout } from "@/components/layout/NavigationLayout";
@@ -19,6 +19,10 @@ import Providers from "./providers";
 export const metadata: Metadata = {
   title: "CinePotato",
   description: "Your Movies, TV & Games Tracker",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#000000",
 };
 
 export default function RootLayout({
