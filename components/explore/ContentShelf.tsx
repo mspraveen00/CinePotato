@@ -25,7 +25,7 @@ export function ContentShelf({ title, items, className }: ContentShelfProps) {
             <div
                 className="
             flex gap-4 overflow-x-auto pb-4 
-            snap-x snap-mandatory 
+            snap-x snap-mandatory scroll-pl-4 md:scroll-pl-8
         "
             >
                 {items.map((item, index) => (
