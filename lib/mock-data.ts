@@ -1,4 +1,4 @@
-import { MockItem, ShelfType } from "./explore";
+import { MockItem, ShelfType } from "@/lib/constants/explore";
 
 export function generateMockItems(count: number, type: ShelfType): MockItem[] {
     return Array.from({ length: count }).map((_, i) => ({
