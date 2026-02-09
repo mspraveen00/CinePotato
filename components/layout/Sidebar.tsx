@@ -69,7 +69,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
             {/* Mobile Backdrop */}
             {mobileOpen && (
                 <div
-                    className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+                    className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm md:hidden"
                     onClick={onMobileClose}
                     aria-hidden="true"
                 />
@@ -82,7 +82,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
             <aside
                 className={cn(
                     // Common styles
-                    "fixed z-50 flex h-screen flex-col border-r border-white/10 bg-black/20 backdrop-blur-xl transition-[width,transform] duration-300 ease-in-out will-change-[width,transform]",
+                    "fixed z-[70] flex h-screen flex-col border-r border-white/10 bg-black/20 backdrop-blur-xl transition-[width,transform] duration-300 ease-in-out will-change-[width,transform]",
 
                     // Desktop Styles (md:...)
                     "md:left-0 md:top-0 md:translate-x-0 md:border-r",
