@@ -41,34 +41,36 @@ export function SortControl({ value, onChange }: SortControlProps) {
     };
 
     return (
-        <div className="flex items-center justify-end mb-4 gap-2">
-            <span className="text-xs text-neutral-500 font-medium uppercase tracking-wider flex items-center gap-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-end mb-4 gap-2">
+            <span className="text-xs text-neutral-500 font-medium uppercase tracking-wider flex items-center gap-1 self-start sm:self-auto ml-1 sm:ml-0">
                 <ListFilter className="w-3 h-3" />
                 Sort By
             </span>
-            <div className="bg-neutral-900/80 border border-white/5 rounded-lg p-1 flex gap-1">
-                {SORT_OPTIONS.map((option) => {
-                    const baseType = getBaseType(option.value);
-                    const isActive = currentBase === baseType;
+            <div className="w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
+                <div className="bg-neutral-900/80 border border-white/5 rounded-lg p-1 flex gap-1 min-w-max">
+                    {SORT_OPTIONS.map((option) => {
+                        const baseType = getBaseType(option.value);
+                        const isActive = currentBase === baseType;
 
-                    return (
-                        <button
-                            key={baseType}
-                            onClick={() => handleSortClick(baseType)}
-                            className={cn(
-                                "px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1",
-                                isActive ? "bg-white/10 text-white" : "text-neutral-400 hover:text-white"
-                            )}
-                        >
-                            {option.label}
-                            {isActive && baseType !== 'relevance' && (
-                                currentDirection === 'asc'
-                                    ? <ArrowUp className="w-3 h-3" />
-                                    : <ArrowDown className="w-3 h-3" />
-                            )}
-                        </button>
-                    );
-                })}
+                        return (
+                            <button
+                                key={baseType}
+                                onClick={() => handleSortClick(baseType)}
+                                className={cn(
+                                    "px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1",
+                                    isActive ? "bg-white/10 text-white" : "text-neutral-400 hover:text-white"
+                                )}
+                            >
+                                {option.label}
+                                {isActive && baseType !== 'relevance' && (
+                                    currentDirection === 'asc'
+                                        ? <ArrowUp className="w-3 h-3" />
+                                        : <ArrowDown className="w-3 h-3" />
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );
