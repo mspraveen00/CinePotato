@@ -6,7 +6,12 @@ import { usePathname } from "next/navigation"
 import { Compass, Search, User, Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export function BottomNav() {
+interface BottomNavProps {
+    onMenuClick: () => void
+    isMenuOpen: boolean
+}
+
+export function BottomNav({ onMenuClick, isMenuOpen }: BottomNavProps) {
     const pathname = usePathname()
     const [isVisible, setIsVisible] = React.useState(true)
     const [lastScrollY, setLastScrollY] = React.useState(0)
@@ -35,7 +40,7 @@ export function BottomNav() {
         { href: "/explore", icon: Compass, label: "Explore" },
         { href: "/search", icon: Search, label: "Search" },
         { href: "/user", icon: User, label: "User" },
-        { href: "#menu", icon: Menu, label: "Menu" }, // Menu placeholder for now
+        { href: "#menu", icon: Menu, label: "Menu", isAction: true }, // Mark as action
     ]
 
     return (
@@ -45,12 +50,30 @@ export function BottomNav() {
                 "w-[90vw] max-w-sm rounded-2xl", // Dock shape
                 "bg-black/20 backdrop-blur-xl border border-white/10", // Glassmorphism
                 "transition-transform duration-300 ease-in-out",
-                isVisible ? "translate-y-0" : "translate-y-[200%]" // Slide out/in
+                // Hide if scrolled down OR menu is open
+                (isVisible && !isMenuOpen) ? "translate-y-0" : "translate-y-[200%]"
             )}
         >
             <nav className="flex items-center justify-around p-3">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href
+
+                    if (item.isAction) {
+                        return (
+                            <button
+                                key={item.label}
+                                onClick={onMenuClick}
+                                className={cn(
+                                    "flex flex-col items-center justify-center p-2 rounded-xl transition-colors",
+                                    "text-muted-foreground hover:bg-white/5"
+                                )}
+                            >
+                                <item.icon size={24} />
+                                <span className="text-[10px] font-medium mt-1">{item.label}</span>
+                            </button>
+                        )
+                    }
+
                     return (
                         <Link
                             key={item.label}
