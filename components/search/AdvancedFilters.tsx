@@ -129,18 +129,7 @@ export function AdvancedFilters({ filters, onChange, onReset, onApply, activeMed
 
                     {/* NEW: Subgenres & Keywords Mock */}
                     <div className="space-y-4">
-                        <div>
-                            <label className="text-sm font-medium text-neutral-300 mb-2 block">Subgenres (Specific)</label>
-                            <div className="relative">
-                                <Plus className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-                                <input
-                                    type="text"
-                                    placeholder="Search subgenres..."
-                                    className="w-full bg-neutral-800 border-none rounded-lg py-2 pl-9 pr-4 text-sm text-white focus:ring-1 focus:ring-white/20"
-                                    disabled // Mocking UI primarily
-                                />
-                            </div>
-                        </div>
+
                         <div>
                             <label className="text-sm font-medium text-neutral-300 mb-2 block">Keywords</label>
                             <div className="relative">

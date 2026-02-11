@@ -4,20 +4,20 @@ import * as React from "react"
 import { MediaSwitcher } from "./MediaSwitcher"
 import { ContentShelf } from "./ContentShelf"
 import { LetterboxdSection } from "./LetterboxdSection"
-import { MOVIE_SHELVES, TV_SHELVES, GAME_SHELVES, ShelfType } from "@/lib/constants/explore"
-import { generateMockItems } from "@/lib/mock-data"
+import { ShelfType, ShelfConfig, MockItem } from "@/lib/constants/explore"
 
-export function ExploreFeed() {
+interface ExploreFeedProps {
+    movies: (ShelfConfig & { items: MockItem[] })[]
+    tv: (ShelfConfig & { items: MockItem[] })[]
+    games: (ShelfConfig & { items: MockItem[] })[]
+}
+
+export function ExploreFeed({ movies, tv, games }: ExploreFeedProps) {
     const [activeType, setActiveType] = React.useState<ShelfType>("movies")
 
-    // Memoize mock data to prevent regeneration on every render
-    const movieShelvesData = React.useMemo(() => MOVIE_SHELVES.map(shelf => ({ ...shelf, items: generateMockItems(10, "movies") })), [])
-    const tvShelvesData = React.useMemo(() => TV_SHELVES.map(shelf => ({ ...shelf, items: generateMockItems(10, "tv") })), [])
-    const gameShelvesData = React.useMemo(() => GAME_SHELVES.map(shelf => ({ ...shelf, items: generateMockItems(10, "games") })), [])
-
-    const currentData = activeType === "movies" ? movieShelvesData :
-        activeType === "tv" ? tvShelvesData :
-            gameShelvesData
+    const currentData = activeType === "movies" ? movies :
+        activeType === "tv" ? tv :
+            games
 
     return (
         <div className="flex flex-col min-h-screen pb-20 fade-in animate-in duration-500">
