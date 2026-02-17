@@ -94,10 +94,10 @@ export function WideCard({ item, actions }: WideCardProps) {
                     {/* Bottom Ratings Row */}
                     <div className="flex items-center justify-between mt-auto">
                         {/* Public Ratings Group */}
-                        <div className="flex items-center gap-4 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/5">
+                        <div className="flex items-center gap-3 bg-black/60 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 shadow-lg">
                             {item.rating_imdb && (
                                 <div className="flex items-center gap-1.5 text-xs font-medium text-neutral-300">
-                                    <IMDbIcon className="w-8 h-4" />
+                                    <IMDbIcon className="w-9 h-5" />
                                     <span className="text-white">{item.rating_imdb.toFixed(1)}</span>
                                 </div>
                             )}
@@ -109,7 +109,7 @@ export function WideCard({ item, actions }: WideCardProps) {
                             )}
                             {item.rating_tmdb && (
                                 <div className="flex items-center gap-1.5 text-xs font-medium text-neutral-300">
-                                    <TMDBLogo className="w-10 h-3" />
+                                    <TMDBLogo className="w-5 h-5" />
                                     <span className="text-white">{item.rating_tmdb.toFixed(1)}</span>
                                 </div>
                             )}
