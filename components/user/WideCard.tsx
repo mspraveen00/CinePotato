@@ -21,7 +21,7 @@ export function WideCard({ item, actions }: WideCardProps) {
     };
 
     return (
-        <div className="group relative flex bg-neutral-900 rounded-xl overflow-hidden h-[180px] border border-neutral-800 hover:border-neutral-700 transition-colors">
+        <div className="group relative flex bg-neutral-900 rounded-xl overflow-hidden h-[105px] md:h-[180px] border border-neutral-800 hover:border-neutral-700 transition-colors">
 
             {/* Three-dot menu */}
             <div className="absolute top-2 right-2 z-20">
@@ -33,7 +33,7 @@ export function WideCard({ item, actions }: WideCardProps) {
             </div>
 
             {/* Left: Poster */}
-            <div className="relative w-[120px] shrink-0 border-r border-neutral-800 z-10">
+            <div className="relative w-[70px] md:w-[120px] shrink-0 border-r border-neutral-800 z-10">
                 {item.poster_path ? (
                     <Image
                         src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
@@ -65,13 +65,13 @@ export function WideCard({ item, actions }: WideCardProps) {
                 </div>
 
                 {/* Content */}
-                <div className="relative z-10 p-5 pl-6 h-full flex flex-col justify-between">
+                <div className="relative z-10 p-3 md:p-5 md:pl-6 h-full flex flex-col justify-between">
 
                     {/* Top Section */}
                     <div>
-                        <h3 className="text-xl font-bold text-white leading-tight line-clamp-1">{item.title}</h3>
-                        <div className="flex items-center gap-2 mt-1 text-sm text-neutral-400">
-                            <span className="flex items-center gap-1 uppercase tracking-wider text-xs font-semibold px-1.5 py-0.5 bg-white/10 rounded">
+                        <h3 className="text-sm md:text-xl font-bold text-white leading-tight line-clamp-1">{item.title}</h3>
+                        <div className="flex items-center gap-1.5 md:gap-2 mt-0.5 md:mt-1 text-xs md:text-sm text-neutral-400">
+                            <span className="flex items-center gap-1 uppercase tracking-wider text-[10px] md:text-xs font-semibold px-1.5 py-0.5 bg-white/10 rounded">
                                 {getMediaTypeIcon()} {item.media_type}
                             </span>
                             <span>•</span>
@@ -94,34 +94,34 @@ export function WideCard({ item, actions }: WideCardProps) {
                     {/* Bottom Ratings Row */}
                     <div className="flex items-center justify-between mt-auto">
                         {/* Public Ratings Group */}
-                        <div className="flex items-center gap-3 bg-black/60 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 shadow-lg">
+                        <div className="flex items-center gap-2 md:gap-3 bg-black/60 backdrop-blur-md px-2 py-1 md:px-4 md:py-1.5 rounded-full border border-white/10 shadow-lg">
                             {item.rating_imdb && (
-                                <div className="flex items-center gap-1.5 text-xs font-medium text-neutral-300">
-                                    <IMDbIcon className="w-9 h-5" />
+                                <div className="flex items-center gap-1 md:gap-1.5 text-[10px] md:text-xs font-medium text-neutral-300">
+                                    <IMDbIcon className="w-7 h-4 md:w-9 md:h-5" />
                                     <span className="text-white">{item.rating_imdb.toFixed(1)}</span>
                                 </div>
                             )}
                             {item.rating_metacritic && (
-                                <div className="flex items-center gap-1.5 text-xs font-medium text-neutral-300">
-                                    <MetacriticIcon className="w-5 h-5 text-current" />
+                                <div className="flex items-center gap-1 md:gap-1.5 text-[10px] md:text-xs font-medium text-neutral-300">
+                                    <MetacriticIcon className="w-4 h-4 md:w-5 md:h-5 text-current" />
                                     <span className="text-white">{item.rating_metacritic}</span>
                                 </div>
                             )}
                             {item.rating_tmdb && (
-                                <div className="flex items-center gap-1.5 text-xs font-medium text-neutral-300">
-                                    <TMDBLogo className="w-5 h-5" />
+                                <div className="flex items-center gap-1 md:gap-1.5 text-[10px] md:text-xs font-medium text-neutral-300">
+                                    <TMDBLogo className="w-4 h-4 md:w-5 md:h-5" />
                                     <span className="text-white">{item.rating_tmdb.toFixed(1)}</span>
                                 </div>
                             )}
                             {item.rating_rotten_tomatoes && (
-                                <div className="flex items-center gap-1.5 text-xs font-medium text-neutral-300">
-                                    <RottenTomatoesIcon className="w-5 h-5" fresh={item.rating_rotten_tomatoes >= 60} />
+                                <div className="flex items-center gap-1 md:gap-1.5 text-[10px] md:text-xs font-medium text-neutral-300">
+                                    <RottenTomatoesIcon className="w-4 h-4 md:w-5 md:h-5" fresh={item.rating_rotten_tomatoes >= 60} />
                                     <span className="text-white">{item.rating_rotten_tomatoes}%</span>
                                 </div>
                             )}
                             {item.rating_popcornmeter && (
-                                <div className="flex items-center gap-1.5 text-xs font-medium text-neutral-300">
-                                    <PopcornIcon className="w-5 h-5" fresh={item.rating_popcornmeter >= 60} />
+                                <div className="flex items-center gap-1 md:gap-1.5 text-[10px] md:text-xs font-medium text-neutral-300">
+                                    <PopcornIcon className="w-4 h-4 md:w-5 md:h-5" fresh={item.rating_popcornmeter >= 60} />
                                     <span className="text-white">{item.rating_popcornmeter}%</span>
                                 </div>
                             )}
@@ -129,7 +129,7 @@ export function WideCard({ item, actions }: WideCardProps) {
 
                         {/* User Rating - Isolated Bottom Right */}
                         {item.rating_user !== undefined && (
-                            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/20 border-2 border-primary text-primary font-bold shadow-lg shadow-primary/20">
+                            <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 text-sm md:text-base rounded-full bg-primary/20 border-2 border-primary text-primary font-bold shadow-lg shadow-primary/20">
                                 {item.rating_user}
                             </div>
                         )}
