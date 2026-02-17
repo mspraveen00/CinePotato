@@ -8,6 +8,7 @@ import { PosterCard } from './PosterCard';
 import { ViewCycler } from './ViewCycler';
 import { MediaSwitch } from './MediaSwitch';
 import { FilterBar } from './FilterBar';
+import { SortMenu } from './SortMenu';
 import { Filter, GripHorizontal, Check, X as XIcon, MoreVertical, FolderInput, CopyPlus } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, rectSortingStrategy } from '@dnd-kit/sortable';
@@ -131,39 +132,52 @@ export function UserListPageContent({ listId }: UserListPageContentProps) {
     return (
         <UserListLayout
             title={list.name}
-            actionButton={
-                showReorderToggle && (
-                    <button
-                        onClick={() => setIsReordering(!isReordering)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isReordering ? 'bg-white text-black' : 'bg-neutral-800 text-white hover:bg-neutral-700'}`}
-                    >
-                        {isReordering ? <Check className="w-4 h-4" /> : <GripHorizontal className="w-4 h-4" />}
-                        {isReordering ? "Done Reordering" : "Update the order"}
-                    </button>
-                )
-            }
         >
             {/* Controls */}
-            <div className="flex flex-col gap-4 mb-6">
-                <div className="flex items-center justify-between">
-                    <MediaSwitch
-                        selectedTypes={list.filters.mediaTypes}
-                        availableTypes={getAvailableMediaTypes()}
-                        onChange={(types) => setListFilters(list.id, { mediaTypes: types })}
-                    />
+            <div className="flex flex-col gap-2 md:gap-4 mb-6">
 
-                    <div className="flex items-center gap-4">
-                        {!isReordering && (
+                {/* 1. Media Switcher (Centered Tabs) */}
+                <MediaSwitch
+                    selectedTypes={list.filters.mediaTypes}
+                    availableTypes={getAvailableMediaTypes()}
+                    onChange={(types) => setListFilters(list.id, { mediaTypes: types })}
+                />
+
+                {/* 2. Action Bar: Filters (Left/Right?), Sort, View */}
+                <div className="flex flex-wrap items-center justify-between gap-4 mt-2">
+                    {/* Left: Reorder Toggle (if applicable) or empty space */}
+                    <div>
+                        {showReorderToggle && (
                             <button
-                                onClick={() => setShowFilters(!showFilters)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${showFilters ? 'bg-white text-black' : 'bg-neutral-900 hover:bg-neutral-800 text-white'}`}
+                                onClick={() => setIsReordering(!isReordering)}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isReordering ? 'bg-white text-black' : 'bg-neutral-800 text-white hover:bg-neutral-700'}`}
                             >
-                                <Filter className="w-4 h-4" />
-                                <span>Filters</span>
+                                {isReordering ? <Check className="w-4 h-4" /> : <GripHorizontal className="w-4 h-4" />}
+                                {isReordering ? "Done" : "Reorder"}
                             </button>
                         )}
+                    </div>
 
-                        <div className="bg-neutral-900 rounded-lg p-1">
+                    {/* Right: Filter Toggle, Sort, View */}
+                    <div className="flex items-center gap-3 ml-auto">
+                        {!isReordering && (
+                            <>
+                                <button
+                                    onClick={() => setShowFilters(!showFilters)}
+                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors border border-neutral-800 ${showFilters ? 'bg-white text-black border-white' : 'bg-neutral-900 hover:bg-neutral-800 text-white'}`}
+                                >
+                                    <Filter className="w-4 h-4" />
+                                    <span className="text-sm font-medium">Filters</span>
+                                </button>
+
+                                <SortMenu
+                                    filters={list.filters}
+                                    onChange={(f) => setListFilters(list.id, f)}
+                                />
+                            </>
+                        )}
+
+                        <div className="bg-neutral-900 rounded-lg p-1 border border-neutral-800">
                             <ViewCycler
                                 currentMode={list.viewMode}
                                 onChange={(mode) => setListViewMode(list.id, mode)}

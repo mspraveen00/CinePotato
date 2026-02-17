@@ -21,10 +21,18 @@ export function WideCard({ item, actions }: WideCardProps) {
     };
 
     return (
-        <div className="group relative flex bg-neutral-900 rounded-xl overflow-hidden h-[105px] md:h-[180px] border border-neutral-800 hover:border-neutral-700 transition-colors">
+        <div className="group relative flex bg-neutral-900 rounded-xl overflow-hidden h-[120px] md:h-[180px] border border-neutral-800 hover:border-neutral-700 transition-colors">
 
             {/* Three-dot menu */}
-            <div className="absolute top-2 right-2 z-20">
+            {/* Top Right: User Rating & Menu */}
+            <div className="absolute top-2 right-2 z-20 flex items-center gap-1">
+                {/* User Rating */}
+                {item.rating_user !== undefined && (
+                    <div className="flex items-center justify-center w-6 h-6 md:w-10 md:h-10 text-[10px] md:text-base rounded-full bg-primary/20 border-2 border-primary text-primary font-bold shadow-lg shadow-primary/20 backdrop-blur-md">
+                        {item.rating_user}
+                    </div>
+                )}
+
                 {actions || (
                     <button className="p-1.5 rounded-full hover:bg-black/50 text-white/70 hover:text-white transition-colors">
                         <MoreVertical className="w-5 h-5" />
@@ -72,7 +80,7 @@ export function WideCard({ item, actions }: WideCardProps) {
                         <h3 className="text-sm md:text-xl font-bold text-white leading-tight line-clamp-1">{item.title}</h3>
                         <div className="flex items-center gap-1.5 md:gap-2 mt-0.5 md:mt-1 text-xs md:text-sm text-neutral-400">
                             <span className="flex items-center gap-1 uppercase tracking-wider text-[10px] md:text-xs font-semibold px-1.5 py-0.5 bg-white/10 rounded">
-                                {getMediaTypeIcon()} {item.media_type}
+                                {getMediaTypeIcon()} <span className="hidden md:inline">{item.media_type}</span>
                             </span>
                             <span>•</span>
                             <span>{item.release_year}</span>
@@ -126,13 +134,6 @@ export function WideCard({ item, actions }: WideCardProps) {
                                 </div>
                             )}
                         </div>
-
-                        {/* User Rating - Isolated Bottom Right */}
-                        {item.rating_user !== undefined && (
-                            <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 text-sm md:text-base rounded-full bg-primary/20 border-2 border-primary text-primary font-bold shadow-lg shadow-primary/20">
-                                {item.rating_user}
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>

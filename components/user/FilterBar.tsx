@@ -10,38 +10,11 @@ interface FilterBarProps {
 }
 
 export function FilterBar({ filters, onChange }: FilterBarProps) {
-    const handleSortChange = () => {
-        // Cycle sort options: Popularity -> IMDb -> User -> Manual (if Bucketlist?)
-        // For simple toggling:
-        // If clinking current sort, toggle direction
-    };
 
-    const toggleSortDirection = () => {
-        onChange({ sortDirection: filters.sortDirection === 'asc' ? 'desc' : 'asc' });
-    };
 
     return (
         <div className="flex flex-wrap items-center gap-4 py-4 border-t border-neutral-800">
-            {/* Sort Options */}
-            <div className="flex items-center gap-2">
-                <span className="text-xs text-neutral-500 uppercase font-semibold">Sort By</span>
-                <select
-                    value={filters.sort}
-                    onChange={(e) => onChange({ sort: e.target.value as any })}
-                    className="bg-neutral-900 border border-neutral-800 text-sm rounded-md px-3 py-1.5 focus:outline-none focus:border-white transition-colors"
-                >
-                    <option value="popularity">Popularity</option>
-                    <option value="rating_imdb">IMDb Rating</option>
-                    <option value="rating_user">User Rating</option>
-                    <option value="manual">Manual Order</option>
-                </select>
-                <button
-                    onClick={toggleSortDirection}
-                    className="p-1.5 hover:bg-neutral-800 rounded-md text-neutral-400 hover:text-white"
-                >
-                    {filters.sortDirection === 'asc' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
-                </button>
-            </div>
+            {/* Filters Only */}
 
             {/* User Rating Filter (Bucket) */}
             <div className="flex items-center gap-2">

@@ -10,7 +10,7 @@ interface UserListLayoutProps {
 
 export function UserListLayout({ title, children, actionButton }: UserListLayoutProps) {
     return (
-        <div className="flex flex-col h-full bg-black text-white p-6">
+        <div className="flex flex-col h-full bg-black text-white p-4 md:p-6 overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">

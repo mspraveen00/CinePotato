@@ -2,48 +2,61 @@
 
 import React from 'react';
 import { MediaType } from '@/lib/store/user-lists-store';
+import { cn } from "@/lib/utils";
 
 interface MediaSwitchProps {
     selectedTypes: MediaType[];
-    availableTypes: MediaType[]; // Provided by parent based on list type
+    availableTypes: MediaType[];
     onChange: (types: MediaType[]) => void;
 }
 
 export function MediaSwitch({ selectedTypes, availableTypes, onChange }: MediaSwitchProps) {
-    const handleToggle = (type: MediaType) => {
-        // Multi-select allowed? "Switch filters list locally" - usually single select for pills or multi.
-        // Let's implement single select "All" vs specific type behavior based on req "Media types: Movie, TV..."
-        // If it's a pill selector for a list, typically it's one active view at a time or multi-filter. 
-        // "Switch filters list locally" implies basic filtering.
-        // Let's allow multi-select for now as it's more flexible, or toggle.
+    // "All" is when selectedTypes is empty.
+    const isAll = selectedTypes.length === 0;
 
-        // If clicking currently active single type, clear it (show all)
-        if (selectedTypes.includes(type) && selectedTypes.length === 1) {
+    // We only support single select UI mainly to match the tabs look, 
+    // but the store supports array. We'll treat it as single select for the UI.
+    const activeType = isAll ? 'all' : selectedTypes[0];
+
+    const handleTypeChange = (type: string) => {
+        if (type === 'all') {
             onChange([]);
-        }
-        // If clicking a new type, set it as active (single select behavior feels better for a "Switch")
-        else {
-            onChange([type]);
+        } else {
+            onChange([type as MediaType]);
         }
     };
 
+    // Filter available types to only show usually relevant ones if needed, 
+    // or just show what's passed.
+    // The user wants it "Same as Explore", which has Movies, TV, Games.
+    // We might have 'episode' or 'person' passed in.
+
+    const tabs = [
+        { value: 'all', label: 'All' },
+        ...availableTypes.map(t => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }))
+    ];
+
     return (
-        <div className="flex items-center gap-2 bg-neutral-900 p-1 rounded-lg">
-            <button
-                onClick={() => onChange([])}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${selectedTypes.length === 0 ? 'bg-white text-black' : 'text-neutral-400 hover:bg-neutral-800'}`}
-            >
-                All
-            </button>
-            {availableTypes.map(type => (
-                <button
-                    key={type}
-                    onClick={() => handleToggle(type)}
-                    className={`px-4 py-2 rounded-md text-sm font-medium capitalize transition-colors ${selectedTypes.includes(type) ? 'bg-white text-black' : 'text-neutral-400 hover:bg-neutral-800'}`}
-                >
-                    {type}
-                </button>
-            ))}
+        <div className="flex justify-center w-full">
+            <div className="inline-flex h-10 items-center justify-center rounded-full bg-neutral-900 p-1 text-neutral-400 border border-white/10 overflow-x-auto max-w-full scrollbar-hide">
+                {tabs.map((tab) => {
+                    const isActive = activeType === tab.value;
+                    return (
+                        <button
+                            key={tab.value}
+                            onClick={() => handleTypeChange(tab.value)}
+                            className={cn(
+                                "inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 md:px-6 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+                                isActive
+                                    ? "bg-white text-black shadow-sm"
+                                    : "text-neutral-400 hover:text-white hover:bg-white/5"
+                            )}
+                        >
+                            {tab.label}
+                        </button>
+                    )
+                })}
+            </div>
         </div>
     );
 }
