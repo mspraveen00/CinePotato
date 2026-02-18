@@ -28,7 +28,7 @@ export interface ListItem {
     added_at: number; // Timestamp for sorting
 }
 
-export type ViewMode = 'wide' | 'poster-2' | 'poster-3' | 'poster-4' | 'poster-5';
+export type ViewMode = 'wide' | 'wide-3' | 'poster-2' | 'poster-3' | 'poster-4' | 'poster-5' | 'poster-6' | 'poster-7';
 
 export interface FilterState {
     sort: 'popularity' | 'rating_imdb' | 'rating_user' | 'manual';

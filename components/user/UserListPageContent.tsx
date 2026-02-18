@@ -118,12 +118,16 @@ export function UserListPageContent({ listId }: UserListPageContentProps) {
 
     const gridClass = () => {
         switch (list.viewMode) {
-            case 'wide': return 'grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4';
+            case 'wide': return 'grid-cols-1 md:grid-cols-2 gap-4';
+            case 'wide-3': return 'grid-cols-1 md:grid-cols-3 gap-4';
+            case 'poster-6': return 'grid-cols-2 md:grid-cols-6 gap-3 md:gap-4'; // Mobile 2, Desktop 6
+            case 'poster-7': return 'grid-cols-3 md:grid-cols-7 gap-3 md:gap-4'; // Mobile 3, Desktop 7
+            // Legacy fallbacks
             case 'poster-2': return 'grid-cols-2 gap-3';
             case 'poster-3': return 'grid-cols-3 gap-3';
             case 'poster-4': return 'grid-cols-2 md:grid-cols-4 gap-4';
             case 'poster-5': return 'grid-cols-2 md:grid-cols-5 gap-4';
-            default: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
+            default: return 'grid-cols-1 md:grid-cols-2';
         }
     };
 
@@ -207,12 +211,10 @@ export function UserListPageContent({ listId }: UserListPageContentProps) {
                 >
                     <SortableContext
                         items={displayedItems.map(i => i.id)}
-                        strategy={list.viewMode === 'wide' ? verticalListSortingStrategy : rectSortingStrategy}
+                        strategy={(list.viewMode === 'wide' || list.viewMode === 'wide-3') ? verticalListSortingStrategy : rectSortingStrategy}
                     >
                         <div className={`grid ${gridClass()}`}>
                             {displayedItems.map(item => {
-                                const ItemComponent = list.viewMode === 'wide' ? WideCard : PosterCard;
-
                                 // Action Menu Content
                                 const actions = (
                                     <div className="relative">
@@ -259,7 +261,15 @@ export function UserListPageContent({ listId }: UserListPageContentProps) {
                                     <SortableItem key={item.id} id={item.id} enabled={isReordering}>
                                         <div className={isReordering ? "pointer-events-none select-none" : ""}>
                                             {/* When reordering, clicking inside card shouldn't trigger nav */}
-                                            <ItemComponent item={item} actions={actions} />
+                                            {(list.viewMode === 'wide' || list.viewMode === 'wide-3') ? (
+                                                <WideCard
+                                                    item={item}
+                                                    actions={actions}
+                                                    variant={list.viewMode === 'wide-3' ? 'compact' : 'standard'}
+                                                />
+                                            ) : (
+                                                <PosterCard item={item} actions={actions} />
+                                            )}
                                         </div>
                                     </SortableItem>
                                 );

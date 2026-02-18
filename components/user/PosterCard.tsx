@@ -5,9 +5,10 @@ import { ListItem } from '@/lib/store/user-lists-store';
 
 interface PosterCardProps {
     item: ListItem;
+    actions?: React.ReactNode;
 }
 
-export function PosterCard({ item }: PosterCardProps) {
+export function PosterCard({ item, actions }: PosterCardProps) {
     return (
         <div className="group relative">
             <div className="aspect-[2/3] bg-neutral-800 rounded-lg overflow-hidden relative">
@@ -26,9 +27,16 @@ export function PosterCard({ item }: PosterCardProps) {
 
                 {/* IMDb Rating Badge */}
                 {item.rating_imdb && (
-                    <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded text-xs text-white font-medium">
+                    <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded text-xs text-white font-medium z-10">
                         <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                         {item.rating_imdb.toFixed(1)}
+                    </div>
+                )}
+
+                {/* Actions Menu */}
+                {actions && (
+                    <div className="absolute top-2 right-2 z-20">
+                        {actions}
                     </div>
                 )}
             </div>

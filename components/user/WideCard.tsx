@@ -7,9 +7,10 @@ import { IMDbIcon, TMDBLogo, MetacriticIcon, RottenTomatoesIcon, PopcornIcon } f
 interface WideCardProps {
     item: ListItem;
     actions?: React.ReactNode;
+    variant?: 'standard' | 'compact';
 }
 
-export function WideCard({ item, actions }: WideCardProps) {
+export function WideCard({ item, actions, variant = 'standard' }: WideCardProps) {
     const getMediaTypeIcon = () => {
         switch (item.media_type) {
             case 'movie': return <Film className="w-3 h-3" />;
@@ -20,15 +21,18 @@ export function WideCard({ item, actions }: WideCardProps) {
         }
     };
 
+    const isCompact = variant === 'compact';
+    const heightClass = isCompact ? "md:h-[150px]" : "md:h-[180px]";
+
     return (
-        <div className="group relative flex bg-neutral-900 rounded-xl overflow-hidden h-[120px] md:h-[180px] border border-neutral-800 hover:border-neutral-700 transition-colors">
+        <div className={`group relative flex bg-neutral-900 rounded-xl overflow-hidden h-[120px] ${heightClass} border border-neutral-800 hover:border-neutral-700 transition-colors`}>
 
             {/* Three-dot menu */}
             {/* Top Right: User Rating & Menu */}
             <div className="absolute top-2 right-2 z-20 flex items-center gap-1">
                 {/* User Rating */}
                 {item.rating_user !== undefined && (
-                    <div className="flex items-center justify-center w-6 h-6 md:w-10 md:h-10 text-[10px] md:text-base rounded-full bg-primary/20 border-2 border-primary text-primary font-bold shadow-lg shadow-primary/20 backdrop-blur-md">
+                    <div className={`flex items-center justify-center w-6 h-6 ${isCompact ? 'md:w-8 md:h-8 md:text-sm' : 'md:w-10 md:h-10 md:text-base'} text-[10px] rounded-full bg-primary/20 border-2 border-primary text-primary font-bold shadow-lg shadow-primary/20 backdrop-blur-md`}>
                         {item.rating_user}
                     </div>
                 )}
@@ -41,7 +45,7 @@ export function WideCard({ item, actions }: WideCardProps) {
             </div>
 
             {/* Left: Poster */}
-            <div className="relative w-[70px] md:w-[120px] shrink-0 border-r border-neutral-800 z-10">
+            <div className={`relative w-[70px] ${isCompact ? 'md:w-[90px]' : 'md:w-[120px]'} shrink-0 border-r border-neutral-800 z-10`}>
                 {item.poster_path ? (
                     <Image
                         src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
@@ -77,7 +81,7 @@ export function WideCard({ item, actions }: WideCardProps) {
 
                     {/* Top Section */}
                     <div>
-                        <h3 className="text-sm md:text-xl font-bold text-white leading-tight line-clamp-1">{item.title}</h3>
+                        <h3 className={`text-sm ${isCompact ? 'md:text-lg' : 'md:text-xl'} font-bold text-white leading-tight line-clamp-1`}>{item.title}</h3>
                         <div className="flex items-center gap-1.5 md:gap-2 mt-0.5 md:mt-1 text-xs md:text-sm text-neutral-400">
                             <span className="flex items-center gap-1 uppercase tracking-wider text-[10px] md:text-xs font-semibold px-1.5 py-0.5 bg-white/10 rounded">
                                 {getMediaTypeIcon()} <span className="hidden md:inline">{item.media_type}</span>
@@ -105,7 +109,7 @@ export function WideCard({ item, actions }: WideCardProps) {
                         <div className="flex items-center gap-2 md:gap-3 bg-black/60 backdrop-blur-md px-2 py-1 md:px-4 md:py-1.5 rounded-full border border-white/10 shadow-lg">
                             {item.rating_imdb && (
                                 <div className="flex items-center gap-1 md:gap-1.5 text-[10px] md:text-xs font-medium text-neutral-300">
-                                    <IMDbIcon className="w-7 h-4 md:w-9 md:h-5" />
+                                    <IMDbIcon className={`w-7 h-4 ${isCompact ? 'md:w-7 md:h-4' : 'md:w-9 md:h-5'}`} />
                                     <span className="text-white">{item.rating_imdb.toFixed(1)}</span>
                                 </div>
                             )}
@@ -117,7 +121,7 @@ export function WideCard({ item, actions }: WideCardProps) {
                             )}
                             {item.rating_tmdb && (
                                 <div className="flex items-center gap-1 md:gap-1.5 text-[10px] md:text-xs font-medium text-neutral-300">
-                                    <TMDBLogo className="w-4 h-4 md:w-5 md:h-5" />
+                                    <TMDBLogo className={`w-4 h-4 ${isCompact ? 'md:w-4 md:h-4' : 'md:w-5 md:h-5'}`} />
                                     <span className="text-white">{item.rating_tmdb.toFixed(1)}</span>
                                 </div>
                             )}
