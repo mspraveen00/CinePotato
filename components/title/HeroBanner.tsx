@@ -58,21 +58,16 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
             {/* Sticky Header (Hidden initially) */}
             <motion.div
                 style={{ opacity: headerOpacity, y: headerY }}
-                className="fixed top-0 left-0 right-0 z-50 bg-neutral-900/90 backdrop-blur-md border-b border-neutral-800 px-4 py-3 flex items-center justify-between"
+                className="fixed top-0 left-0 right-0 z-50 bg-neutral-900/90 backdrop-blur-md border-b border-neutral-800 px-4 py-3 flex items-center justify-center"
             >
-                <div className="container mx-auto flex items-center gap-4">
+                <div className="container mx-auto flex items-center justify-center gap-4">
                     {logoPath ? (
                         <div className="relative h-8 w-32">
-                            <Image src={logoPath} alt={title} fill className="object-contain object-left" />
+                            <Image src={logoPath} alt={title} fill className="object-contain object-center" />
                         </div>
                     ) : (
                         <h2 className="text-lg font-bold text-white truncate">{title}</h2>
                     )}
-                    <div className="flex items-center gap-2">
-                        <button className="bg-white text-black px-4 py-1.5 rounded-full text-sm font-bold hover:bg-neutral-200 transition-colors">
-                            Watch
-                        </button>
-                    </div>
                 </div>
             </motion.div>
 
