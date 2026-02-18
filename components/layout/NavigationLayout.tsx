@@ -36,7 +36,7 @@ export function NavigationLayout({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* Main Content Area */}
-            <main className="min-h-screen w-full transition-[padding] duration-300 md:pl-[72px] pb-24 md:pb-0">
+            <main className="min-h-screen w-full transition-[padding] duration-300 md:pl-[calc(64px+0.25rem)] pb-24 md:pb-0">
                 {children}
             </main>
         </>
