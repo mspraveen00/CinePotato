@@ -161,6 +161,24 @@ const MOCK_ITEMS: ListItem[] = [
         genres: ["Sci-Fi & Fantasy", "Mystery", "Drama"],
         added_at: 1700000000004
     },
+    {
+        id: 693134,
+        title: "Dune: Part Two",
+        poster_path: "/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg",
+        backdrop_path: "/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg",
+        media_type: "movie",
+        release_year: 2024,
+        runtime_or_episodes: "2h 46m",
+        content_rating: "PG-13",
+        rating_imdb: 8.8,
+        rating_metacritic: 79,
+        rating_rotten_tomatoes: 93,
+        rating_popcornmeter: 95,
+        rating_tmdb: 8.3,
+        rating_user: 10,
+        genres: ["Science Fiction", "Adventure"],
+        added_at: 1700000000005
+    }
 ];
 
 const DEFAULT_FILTERS: FilterState = {
@@ -186,7 +204,7 @@ const INITIAL_LISTS: UserList[] = [
         id: "favourites",
         name: "Favourites",
         type: "system",
-        items: [MOCK_ITEMS[1], MOCK_ITEMS[4]],
+        items: [MOCK_ITEMS[1], MOCK_ITEMS[4], MOCK_ITEMS[5]], // Interstellar, Stranger Things, Dune Part Two
         description: "Your favourite content",
         viewMode: 'wide',
         filters: { ...DEFAULT_FILTERS }
