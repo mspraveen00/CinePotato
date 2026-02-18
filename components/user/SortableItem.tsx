@@ -9,9 +9,10 @@ interface SortableItemProps {
     id: number;
     children: React.ReactNode;
     enabled: boolean;
+    zIndex?: number;
 }
 
-export function SortableItem({ id, children, enabled }: SortableItemProps) {
+export function SortableItem({ id, children, enabled, zIndex }: SortableItemProps) {
     const {
         attributes,
         listeners,
@@ -25,7 +26,7 @@ export function SortableItem({ id, children, enabled }: SortableItemProps) {
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.5 : 1,
-        zIndex: isDragging ? 50 : 'auto',
+        zIndex: isDragging ? 50 : (zIndex ?? 'auto'),
         position: 'relative' as const,
     };
 

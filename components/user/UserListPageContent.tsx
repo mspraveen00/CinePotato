@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useUserLists, MediaType, FilterState } from '@/lib/store/user-lists-store';
 import { UserListLayout } from './UserListLayout';
 import { WideCard } from './WideCard';
@@ -23,7 +24,13 @@ export function UserListPageContent({ listId }: UserListPageContentProps) {
     const list = getList(listId);
     const [showFilters, setShowFilters] = useState(false);
     const [isReordering, setIsReordering] = useState(false);
-    const [actionMenuOpen, setActionMenuOpen] = useState<number | null>(null);
+
+    const [menuState, setMenuState] = useState<{ id: number; top: number; right: number } | null>(null);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -58,12 +65,12 @@ export function UserListPageContent({ listId }: UserListPageContentProps) {
 
     const handleMoveTo = (itemId: number, targetListId: string) => {
         moveItem(itemId, listId, targetListId);
-        setActionMenuOpen(null);
+        setMenuState(null);
     };
 
     const handleCopyTo = (item: any, targetListId: string) => {
         copyItem(item, targetListId);
-        setActionMenuOpen(null);
+        setMenuState(null);
     };
 
     // Logic to determine if we show raw order (manual) or filtered/sorted
@@ -219,46 +226,35 @@ export function UserListPageContent({ listId }: UserListPageContentProps) {
                                 const actions = (
                                     <div className="relative">
                                         <button
-                                            onClick={(e) => { e.stopPropagation(); setActionMenuOpen(actionMenuOpen === item.id ? null : item.id); }}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                const rect = e.currentTarget.getBoundingClientRect();
+                                                if (menuState?.id === item.id) {
+                                                    setMenuState(null);
+                                                } else {
+                                                    setMenuState({
+                                                        id: item.id,
+                                                        top: rect.bottom + 8,
+                                                        right: window.innerWidth - rect.right
+                                                    });
+                                                }
+                                            }}
                                             className="p-1.5 rounded-full hover:bg-black/50 text-white/70 hover:text-white transition-colors"
                                         >
                                             <MoreVertical className="w-5 h-5" />
                                         </button>
 
-                                        {actionMenuOpen === item.id && (
-                                            <div className="absolute right-0 mt-2 w-48 bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl z-50 overflow-hidden">
-                                                <div className="p-1">
-                                                    <div className="px-2 py-1.5 text-xs font-semibold text-neutral-500 uppercase">Move to...</div>
-                                                    {lists.filter(l => l.id !== listId && l.type !== 'system').map(l => (
-                                                        <button
-                                                            key={l.id}
-                                                            onClick={() => handleMoveTo(item.id, l.id)}
-                                                            className="flex items-center w-full px-2 py-1.5 text-sm text-neutral-300 hover:bg-neutral-800 rounded"
-                                                        >
-                                                            <FolderInput className="w-3.5 h-3.5 mr-2" />
-                                                            {l.name}
-                                                        </button>
-                                                    ))}
-                                                    <div className="my-1 border-t border-neutral-800" />
-                                                    <div className="px-2 py-1.5 text-xs font-semibold text-neutral-500 uppercase">Copy to...</div>
-                                                    {lists.filter(l => l.id !== listId).map(l => (
-                                                        <button
-                                                            key={l.id}
-                                                            onClick={() => handleCopyTo(item, l.id)}
-                                                            className="flex items-center w-full px-2 py-1.5 text-sm text-neutral-300 hover:bg-neutral-800 rounded"
-                                                        >
-                                                            <CopyPlus className="w-3.5 h-3.5 mr-2" />
-                                                            {l.name}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
+
                                     </div>
                                 );
 
                                 return (
-                                    <SortableItem key={item.id} id={item.id} enabled={isReordering}>
+                                    <SortableItem
+                                        key={item.id}
+                                        id={item.id}
+                                        enabled={isReordering}
+                                        zIndex={menuState?.id === item.id ? 40 : undefined}
+                                    >
                                         <div className={isReordering ? "pointer-events-none select-none" : ""}>
                                             {/* When reordering, clicking inside card shouldn't trigger nav */}
                                             {(list.viewMode === 'wide' || list.viewMode === 'wide-3') ? (
@@ -279,9 +275,42 @@ export function UserListPageContent({ listId }: UserListPageContentProps) {
                 </DndContext>
             )}
 
-            {/* Overlay to close menu when clicking outside */}
-            {actionMenuOpen !== null && (
-                <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setActionMenuOpen(null)} />
+            {/* Portal Action Menu */}
+            {mounted && menuState && createPortal(
+                <>
+                    <div className="fixed inset-0 z-50 bg-transparent" onClick={() => setMenuState(null)} />
+                    <div
+                        className="fixed z-50 w-48 bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+                        style={{ top: menuState.top, right: menuState.right }}
+                    >
+                        <div className="p-1">
+                            <div className="px-2 py-1.5 text-xs font-semibold text-neutral-500 uppercase">Move to...</div>
+                            {lists.filter(l => l.id !== listId && l.type !== 'system').map(l => (
+                                <button
+                                    key={l.id}
+                                    onClick={() => handleMoveTo(menuState.id, l.id)}
+                                    className="flex items-center w-full px-2 py-1.5 text-sm text-neutral-300 hover:bg-neutral-800 rounded"
+                                >
+                                    <FolderInput className="w-3.5 h-3.5 mr-2" />
+                                    {l.name}
+                                </button>
+                            ))}
+                            <div className="my-1 border-t border-neutral-800" />
+                            <div className="px-2 py-1.5 text-xs font-semibold text-neutral-500 uppercase">Copy to...</div>
+                            {lists.filter(l => l.id !== listId).map(l => (
+                                <button
+                                    key={l.id}
+                                    onClick={() => handleCopyTo(list.items.find(i => i.id === menuState.id), l.id)}
+                                    className="flex items-center w-full px-2 py-1.5 text-sm text-neutral-300 hover:bg-neutral-800 rounded"
+                                >
+                                    <CopyPlus className="w-3.5 h-3.5 mr-2" />
+                                    {l.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </>,
+                document.body
             )}
         </UserListLayout>
     );

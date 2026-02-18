@@ -34,12 +34,14 @@ export function PosterCard({ item, actions }: PosterCardProps) {
                 )}
 
                 {/* Actions Menu */}
-                {actions && (
-                    <div className="absolute top-2 right-2 z-20">
-                        {actions}
-                    </div>
-                )}
+
             </div>
+            {/* Actions Menu (Moved outside overflow container) */}
+            {actions && (
+                <div className="absolute top-2 right-2 z-20">
+                    {actions}
+                </div>
+            )}
             <h3 className="mt-2 text-sm font-medium text-white truncate">{item.title}</h3>
             <p className="text-xs text-neutral-400 capitalize">{item.media_type} • {item.release_year}</p>
         </div>
