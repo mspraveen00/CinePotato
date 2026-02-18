@@ -38,9 +38,9 @@ export default function UserPage() {
     };
 
     return (
-        <div className="min-h-screen bg-black text-white p-8 pb-24 space-y-12">
+        <div className="min-h-screen bg-black text-white pb-24 space-y-12 pt-8">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between px-4 md:px-8">
                 <h1 className="text-3xl font-bold">My Library</h1>
                 <CreateListButton onClick={handleCreateList} />
             </div>
@@ -53,7 +53,7 @@ export default function UserPage() {
             </div>
 
             {/* Custom Lists Section */}
-            <div className="space-y-6 pt-8 border-t border-neutral-800">
+            <div className="space-y-6 pt-8 border-t border-neutral-800 px-4 md:px-8">
                 <div className="flex items-center justify-between">
                     <h2 className="text-2xl font-bold text-white">My Collections</h2>
                     <span className="text-neutral-500 text-sm">{customLists.length} lists</span>
