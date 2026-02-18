@@ -25,7 +25,7 @@ export function UserListPageContent({ listId }: UserListPageContentProps) {
     const [showFilters, setShowFilters] = useState(false);
     const [isReordering, setIsReordering] = useState(false);
 
-    const [menuState, setMenuState] = useState<{ id: number; top: number; right: number } | null>(null);
+    const [menuState, setMenuState] = useState<{ id: number; top: number; left?: number; right?: number } | null>(null);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -232,10 +232,14 @@ export function UserListPageContent({ listId }: UserListPageContentProps) {
                                                 if (menuState?.id === item.id) {
                                                     setMenuState(null);
                                                 } else {
+                                                    const windowWidth = window.innerWidth;
+                                                    const isRightSide = rect.right > windowWidth / 2;
+
                                                     setMenuState({
                                                         id: item.id,
                                                         top: rect.bottom + 8,
-                                                        right: window.innerWidth - rect.right
+                                                        right: isRightSide ? windowWidth - rect.right : undefined,
+                                                        left: isRightSide ? undefined : rect.left
                                                     });
                                                 }
                                             }}
@@ -281,7 +285,11 @@ export function UserListPageContent({ listId }: UserListPageContentProps) {
                     <div className="fixed inset-0 z-50 bg-transparent" onClick={() => setMenuState(null)} />
                     <div
                         className="fixed z-50 w-48 bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100"
-                        style={{ top: menuState.top, right: menuState.right }}
+                        style={{
+                            top: menuState.top,
+                            right: menuState.right,
+                            left: menuState.left
+                        }}
                     >
                         <div className="p-1">
                             <div className="px-2 py-1.5 text-xs font-semibold text-neutral-500 uppercase">Move to...</div>
