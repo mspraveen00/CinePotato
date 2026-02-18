@@ -134,7 +134,7 @@ export function WideCard({ item, actions, variant = 'standard' }: WideCardProps)
             <div className="absolute top-2 right-2 z-20 flex items-center gap-1">
                 {/* User Rating */}
                 {item.rating_user !== undefined && (
-                    <div className={`flex items-center justify-center w-6 h-6 ${isCompact ? 'md:w-8 md:h-8 md:text-sm' : 'md:w-10 md:h-10 md:text-base'} text-[10px] rounded-full bg-primary/20 border-2 border-primary text-primary font-bold shadow-lg shadow-primary/20 backdrop-blur-md`}>
+                    <div className={`flex items-center justify-center w-6 h-6 ${isCompact ? 'md:w-6 md:h-6 md:text-xs' : 'md:w-8 md:h-8 md:text-sm'} text-[10px] rounded-full bg-primary/20 border-2 border-primary text-primary font-bold shadow-lg shadow-primary/20 backdrop-blur-md`}>
                         {item.rating_user}
                     </div>
                 )}
