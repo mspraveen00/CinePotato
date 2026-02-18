@@ -1,5 +1,8 @@
 import HeroBanner from '@/components/title/HeroBanner';
-import { TitleDetail } from '@/types/title';
+import { getMovieDetail } from '@/lib/tmdb';
+import { notFound } from 'next/navigation';
+
+export const revalidate = 3600; // Cache for 1 hour
 
 export default async function MoviePage({
     params,
@@ -8,27 +11,15 @@ export default async function MoviePage({
 }) {
     const { id } = await params
 
-    // Mock Data (Replace with real data fetching later)
-    const mockTitleDetail: TitleDetail = {
-        id: id,
-        title: "Dune: Part Two",
-        overview: "Follow the mythic journey of Paul Atreides as he unites with Chani and the Fremen while on a warpath of revenge against the conspirators who destroyed his family. Facing a choice between the love of his life and the fate of the known universe, Paul endeavors to prevent a terrible future only he can foresee.",
-        backdropImages: [
-            "https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg",
-            "https://image.tmdb.org/t/p/original/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg",
-            "https://image.tmdb.org/t/p/original/lzWHmYdfeFiMIY4JaMmtR7GEli3.jpg"
-        ],
-        posterPath: "https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg",
-        releaseYear: 2024,
-        runtime: "2h 46m",
-        genres: ["Science Fiction", "Adventure"],
-        rating: 8.3,
-        // logoPath: "https://image.tmdb.org/t/p/original/51tqzRtKMMZEYUpSYkrUE7v9ehm.png" // Comment out to test text fallback
-    };
+    const titleDetail = await getMovieDetail(id);
+
+    if (!titleDetail) {
+        notFound();
+    }
 
     return (
         <main className="min-h-screen bg-neutral-900 text-white pb-20">
-            <HeroBanner titleDetail={mockTitleDetail} />
+            <HeroBanner titleDetail={titleDetail} />
 
             <div className="container mx-auto px-4 relative z-10 mt-12">
                 <div className="flex flex-col md:flex-row gap-12">
@@ -40,7 +31,7 @@ export default async function MoviePage({
                         <section>
                             <h3 className="text-xl font-bold mb-4">Plot Summary</h3>
                             <p className="text-neutral-300 leading-relaxed text-lg max-w-3xl">
-                                {mockTitleDetail.overview}
+                                {titleDetail.overview}
                             </p>
                         </section>
 
