@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const TMDB_API_URL = 'https://api.themoviedb.org/3';
+export const dynamic = 'force-dynamic';
 
 export async function GET(
     request: NextRequest,
