@@ -55,8 +55,8 @@ export async function searchGames(query: string): Promise<SearchResult[]> {
             };
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Game Search Service Error:", error);
-        return [];
+        throw new Error(error.message || "Failed to fetch game results");
     }
 }

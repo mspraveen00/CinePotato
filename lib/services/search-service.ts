@@ -142,8 +142,8 @@ export async function searchTitles(query: string, type?: MediaType): Promise<Sea
                 };
             });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Search Service Error:", error);
-        return [];
+        throw new Error(error.message || "Failed to fetch search results");
     }
 }

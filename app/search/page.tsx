@@ -20,6 +20,7 @@ export default function SearchPage() {
     const [sort, setSort] = React.useState<SortOption>("relevance")
     const [isLoading, setIsLoading] = React.useState(false)
     const [results, setResults] = React.useState<SearchResult[]>([])
+    const [error, setError] = React.useState<string | null>(null)
 
     const [recentSearches, setRecentSearches] = React.useState<string[]>([
         "Avatar: The Way of Water", "The Last of Us", "Elden Ring", "Christopher Nolan"
@@ -80,6 +81,7 @@ export default function SearchPage() {
                 return;
             }
 
+            setError(null)
             setIsLoading(true)
 
             try {
@@ -100,8 +102,9 @@ export default function SearchPage() {
                 });
 
                 setResults(filteredResults);
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Search failed", error);
+                setError(error.message || "An unexpected error occurred while searching.");
                 setResults([]);
             } finally {
                 setIsLoading(false)
@@ -180,10 +183,19 @@ export default function SearchPage() {
                 )}
 
                 {/* Results Section */}
-                {(query || results.length > 0) && (
+                {(query || results.length > 0 || error) && (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        {results.length > 0 && <SortControl value={sort} onChange={setSort} />}
-                        <SearchResults results={results} isLoading={isLoading} />
+                        {error ? (
+                            <div className="text-center py-12">
+                                <div className="text-red-500 mb-2">Search Error</div>
+                                <div className="text-neutral-400">{error}</div>
+                            </div>
+                        ) : (
+                            <>
+                                {results.length > 0 && <SortControl value={sort} onChange={setSort} />}
+                                <SearchResults results={results} isLoading={isLoading} />
+                            </>
+                        )}
                     </div>
                 )}
             </div>
