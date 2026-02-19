@@ -1,5 +1,5 @@
 import HeroBanner from '@/components/title/HeroBanner';
-import { getMovieDetail } from '@/lib/tmdb';
+import { getMovieDetail } from '@/lib/services/movie-service';
 import { notFound } from 'next/navigation';
 
 export const revalidate = 3600; // Cache for 1 hour

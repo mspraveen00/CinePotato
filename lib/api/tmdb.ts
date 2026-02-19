@@ -1,25 +1,31 @@
-const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
-const TMDB_READ_ACCESS_TOKEN = process.env.TMDB_READ_ACCESS_TOKEN;
+const TMDB_API_URL = 'https://api.themoviedb.org/3';
 
-export async function fetchTMDB<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
-    const url = new URL(`${TMDB_BASE_URL}${endpoint}`);
-    if (params) {
-        Object.entries(params).forEach(([key, value]) => url.searchParams.append(key, value));
+export async function fetchTMDB<T>(path: string, options: RequestInit = {}): Promise<T> {
+    const token = process.env.TMDB_READ_ACCESS_TOKEN;
+    if (!token) {
+        throw new Error("Missing TMDB_READ_ACCESS_TOKEN");
     }
 
-    const res = await fetch(url.toString(), {
-        headers: {
-            Authorization: `Bearer ${TMDB_READ_ACCESS_TOKEN}`,
-            'Content-Type': 'application/json',
-        },
-        next: { revalidate: 3600 }, // Cache for 1 hour by default
-    });
+    const url = `${TMDB_API_URL}${path.startsWith('/') ? path : `/${path}`}`;
 
-    if (!res.ok) {
-        throw new Error(`TMDB Error: ${res.status} ${res.statusText}`);
+    try {
+        const response = await fetch(url, {
+            ...options,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+                ...options.headers,
+            },
+            next: { revalidate: 3600, ...options.next },
+        });
+
+        if (!response.ok) {
+            throw new Error(`TMDB API Error: ${response.status} ${response.statusText}`);
+        }
+
+        return response.json();
+    } catch (error) {
+        console.error(`TMDB Fetch Error for ${path}:`, error);
+        throw error;
     }
-
-    return res.json();
 }
-
-// Types will be added as needed

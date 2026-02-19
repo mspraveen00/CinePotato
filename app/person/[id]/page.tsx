@@ -1,17 +1,17 @@
 import HeroBanner from '@/components/title/HeroBanner';
-import { getTVDetail } from '@/lib/services/tv-service';
+import { getPersonDetail } from '@/lib/services/person-service';
 import { notFound } from 'next/navigation';
 
 export const revalidate = 3600; // Cache for 1 hour
 
-export default async function TVPage({
+export default async function PersonPage({
     params,
 }: {
     params: Promise<{ id: string }>
 }) {
     const { id } = await params
 
-    const titleDetail = await getTVDetail(id);
+    const titleDetail = await getPersonDetail(id);
 
     if (!titleDetail) {
         notFound();
@@ -27,25 +27,17 @@ export default async function TVPage({
                     <div className="hidden md:block w-64 flex-shrink-0" />
 
                     <div className="flex-1 space-y-8">
-                        {/* Plot Summary */}
+                        {/* Biography */}
                         <section>
-                            <h3 className="text-xl font-bold mb-4">Plot Summary</h3>
+                            <h3 className="text-xl font-bold mb-4">Biography</h3>
                             <p className="text-neutral-300 leading-relaxed text-lg max-w-3xl">
-                                {titleDetail.overview}
+                                {titleDetail.overview || "No biography available."}
                             </p>
                         </section>
 
-                        {/* Seasons Placeholder */}
+                        {/* Known For / Credits Placeholder */}
                         <section>
-                            <h3 className="text-xl font-bold mb-4">Seasons</h3>
-                            <div className="p-4 bg-neutral-800 rounded border border-neutral-700">
-                                <p className="text-sm text-neutral-400">Total Seasons: (Data not available in basic details)</p>
-                            </div>
-                        </section>
-
-                        {/* Cast Placeholder */}
-                        <section>
-                            <h3 className="text-xl font-bold mb-4">Top Cast</h3>
+                            <h3 className="text-xl font-bold mb-4">Known For</h3>
                             <div className="flex gap-4 overflow-x-auto pb-4">
                                 {[1, 2, 3, 4, 5].map((i) => (
                                     <div key={i} className="w-32 flex-shrink-0">

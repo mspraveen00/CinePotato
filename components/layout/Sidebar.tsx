@@ -102,13 +102,17 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                 {/* Visual Inner Wrapper */}
                 <div className={cn(
                     "flex flex-col h-full w-full overflow-hidden", // Content clipper
-                    "bg-black/20 backdrop-blur-xl border-white/10", // Glassmorphism
 
-                    // Mobile Visuals
-                    "border-l",
+                    // Premium Glassmorphism
+                    "bg-[rgba(15,15,15,0.6)] backdrop-blur-[20px]", // Dark semi-transparent glass
+                    "bg-gradient-to-b from-transparent via-white/[0.02] to-transparent", // Subtle inner gradient
+
+                    // Borders & depth
+                    "border-l md:border border-[rgba(255,255,255,0.08)]", // Edge highlight
+                    "shadow-[0_0_40px_rgba(0,0,0,0.7),inset_1px_0_1px_rgba(255,255,255,0.05),inset_1px_0_20px_rgba(0,100,255,0.05)]", // Deep outer shadow + Edge highlight + Subtle blue glow
 
                     // Desktop Visuals
-                    "md:border md:rounded-2xl"
+                    "md:rounded-2xl"
                 )}>
                     {/* Header / Menu Toggle */}
                     <div className={cn(
@@ -120,8 +124,10 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                         <button
                             onClick={togglePin}
                             className={cn(
-                                "hidden md:flex h-10 w-10 items-center justify-center rounded-md hover:bg-white/10 transition-colors",
-                                isPinned && "bg-white/10 text-primary", // Highlight if pinned
+                                "hidden md:flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300",
+                                isPinned
+                                    ? "bg-white/10 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)]" // Pinned glow
+                                    : "text-white/70 hover:text-white hover:bg-white/5 hover:scale-110" // Default hover
                             )}
                             aria-label="Toggle Menu"
                         >
@@ -165,10 +171,15 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                                     key={linkItem.href}
                                     href={linkItem.href}
                                     className={cn(
-                                        "flex h-10 items-center rounded-md transition-colors hover:bg-white/10",
+                                        "flex h-10 items-center rounded-xl transition-all duration-300 group",
                                         // Center icon when collapsed, left align when expanded
                                         // Remove padding when collapsed to avoid offsetting center
-                                        isExpanded ? "px-2 justify-start" : "justify-center"
+                                        isExpanded ? "px-2 justify-start" : "justify-center",
+
+                                        // Premium Interaction States
+                                        isActive
+                                            ? "bg-white/10 shadow-[0_0_15px_rgba(59,130,246,0.3)] opacity-100 text-white"
+                                            : "opacity-70 hover:opacity-100 hover:bg-white/5 hover:scale-105 text-white/80"
                                     )}
                                     onClick={() => {
                                         if (mobileOpen && onMobileClose) onMobileClose()
@@ -177,7 +188,10 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                                     <div className={cn(
                                         "flex h-10 w-10 items-center justify-center", // Icon container fixed width
                                     )}>
-                                        <linkItem.icon size={24} className={cn(isActive && "text-blue-400")} />
+                                        <linkItem.icon size={24} className={cn(
+                                            "transition-colors duration-300",
+                                            isActive && "text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" // Accent glow
+                                        )} />
                                     </div>
 
                                     <span

@@ -1,7 +1,9 @@
 import { SearchResult, MediaType } from '@/types/search';
 import { Film, Tv, Gamepad2, User, FileText, LayoutGrid, Star, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
-import Image from 'next/image'; // Assuming generic image component or next/image usage
+import Image from 'next/image';
+import Link from 'next/link';
+// Assuming generic image component or next/image usage
 
 // Map media types to icons and labels
 const MEDIA_ICONS: Record<MediaType, any> = {
@@ -53,57 +55,68 @@ export function SearchResults({ results, isLoading }: SearchResultsProps) {
                 const colorClass = MEDIA_COLORS[result.mediaType];
 
                 return (
-                    <motion.div
-                        key={result.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="group flex gap-4 p-4 bg-neutral-900/50 hover:bg-neutral-800/80 border border-white/5 hover:border-white/10 rounded-xl transition-all cursor-pointer backdrop-blur-sm"
-                    >
-                        {/* Placeholder for Poster/Image - In a real app we'd have images */}
-                        <div className="w-16 h-24 bg-neutral-800 rounded-lg flex-shrink-0 flex items-center justify-center text-neutral-600">
-                            <Icon className="w-8 h-8 opacity-20" />
-                        </div>
-
-                        <div className="flex-1 min-w-0 flex flex-col justify-center">
-                            <div className="flex items-center gap-2 mb-1">
-                                <Icon className={`w-4 h-4 ${colorClass}`} />
-                                <span className={`text-xs font-bold uppercase tracking-wider ${colorClass}`}>
-                                    {result.mediaType}
-                                </span>
-                                {result.rating && (
-                                    <span className="flex items-center gap-1 text-xs text-yellow-500 ml-auto">
-                                        <Star className="w-3 h-3 fill-yellow-500" />
-                                        {result.rating.toFixed(1)}
-                                    </span>
+                    <Link href={`/${result.mediaType}/${result.id}`} key={result.id} className="block group">
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="flex gap-4 p-4 bg-neutral-900/50 hover:bg-neutral-800/80 border border-white/5 hover:border-white/10 rounded-xl transition-all cursor-pointer backdrop-blur-sm"
+                        >
+                            {/* Placeholder for Poster/Image - In a real app we'd have images */}
+                            <div className="w-16 h-24 bg-neutral-800 rounded-lg flex-shrink-0 flex items-center justify-center text-neutral-600 relative overflow-hidden">
+                                {result.posterPath ? (
+                                    <Image
+                                        src={result.posterPath}
+                                        alt={result.title}
+                                        fill
+                                        className="object-cover"
+                                        sizes="64px"
+                                    />
+                                ) : (
+                                    <Icon className="w-8 h-8 opacity-20" />
                                 )}
                             </div>
 
-                            <h3 className="text-lg font-semibold text-white truncate pr-4 group-hover:text-primary transition-colors">
-                                {result.title}
-                            </h3>
-
-                            {/* Specific Metadata Display */}
-                            <div className="text-sm text-neutral-400 mt-1 flex items-center gap-3">
-                                {result.releaseDate && (
-                                    <span className="flex items-center gap-1">
-                                        <Calendar className="w-3 h-3" />
-                                        {new Date(result.releaseDate).getFullYear()}
+                            <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Icon className={`w-4 h-4 ${colorClass}`} />
+                                    <span className={`text-xs font-bold uppercase tracking-wider ${colorClass}`}>
+                                        {result.mediaType}
                                     </span>
-                                )}
+                                    {result.rating && (
+                                        <span className="flex items-center gap-1 text-xs text-yellow-500 ml-auto">
+                                            <Star className="w-3 h-3 fill-yellow-500" />
+                                            {result.rating.toFixed(1)}
+                                        </span>
+                                    )}
+                                </div>
 
-                                {result.mediaType === 'episode' && (
-                                    <span className="text-neutral-500">
-                                        {result.parentSeriesTitle} • S{result.seasonNumber} E{result.episodeNumber}
-                                    </span>
-                                )}
+                                <h3 className="text-lg font-semibold text-white truncate pr-4 group-hover:text-primary transition-colors">
+                                    {result.title}
+                                </h3>
 
-                                {result.mediaType === 'person' && (
-                                    <span>Person</span>
-                                )}
+                                {/* Specific Metadata Display */}
+                                <div className="text-sm text-neutral-400 mt-1 flex items-center gap-3">
+                                    {result.releaseDate && (
+                                        <span className="flex items-center gap-1">
+                                            <Calendar className="w-3 h-3" />
+                                            {new Date(result.releaseDate).getFullYear()}
+                                        </span>
+                                    )}
+
+                                    {result.mediaType === 'episode' && (
+                                        <span className="text-neutral-500">
+                                            {result.parentSeriesTitle} • S{result.seasonNumber} E{result.episodeNumber}
+                                        </span>
+                                    )}
+
+                                    {result.mediaType === 'person' && (
+                                        <span>Person</span>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    </motion.div>
+                        </motion.div>
+                    </Link>
                 );
             })}
         </div>

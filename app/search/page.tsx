@@ -9,6 +9,7 @@ import { SortControl } from "@/components/search/SortControl"
 import { RecentSearches } from "@/components/search/RecentSearches"
 import { SearchFilters, SearchResult, MediaType, SortOption } from "@/types/search"
 import { generateMockItems } from "@/lib/mock-data"
+import { searchTitles } from "@/lib/services/search-service"
 import { Filter, History, SlidersHorizontal } from "lucide-react"
 
 export default function SearchPage() {
@@ -71,46 +72,40 @@ export default function SearchPage() {
                 return
             }
 
-            // If manual advanced search, use activeFilters.
-            // If global search, use query.
-            // Let's use activeFilters as the source of truth if set.
             const currentFilters = activeFilters || { query, mediaTypes: [activeType] }
+            const searchQuery = currentFilters.query || query;
+
+            if (!searchQuery) {
+                setResults([]);
+                return;
+            }
 
             setIsLoading(true)
 
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 800))
+            try {
+                const typeToSearch = currentFilters.mediaTypes?.[0] || activeType;
+                const searchResults = await searchTitles(searchQuery, typeToSearch);
 
-            // Generate mock data based on type
-            // Map ShelfType to MediaType for the generator if needed, or just use the generator
-            // generateMockItems takes 'movies' | 'tv' | 'games'
-            let shelfType: "movies" | "tv" | "games" = "movies"
-            // Use currentFilters mediaType for generation
-            const typeToUse = currentFilters.mediaTypes?.[0] || activeType
+                // Client-side filtering to match the specific "tab" behavior if needed, 
+                // although Multi-Search might be what we want generally.
+                // The UI has "activeType" tabs. Let's filter by it to mock the behavior of "Movie Tab" vs "TV Tab".
+                // Note: activeType can be 'movie', 'tv', 'game', 'person'
 
-            if (typeToUse === "tv") shelfType = "tv"
-            if (typeToUse === "game") shelfType = "games"
+                const filteredResults = searchResults.filter(item => {
+                    // If activeType is 'game', and TMDB doesn't really have games, we might get nothing.
+                    // But for 'movie' and 'tv', we should filter.
+                    // If we want "Multi" result in "All"? The UI has specific tabs.
 
-            // Note: 'person' and others not covered by generateMockItems yet, defaulting to movies or empty
-            if (typeToUse === "person") {
-                setResults([]) // Todo: Implement person mock
+                    return item.mediaType === typeToSearch;
+                });
+
+                setResults(filteredResults);
+            } catch (error) {
+                console.error("Search failed", error);
+                setResults([]);
+            } finally {
                 setIsLoading(false)
-                return
             }
-
-            const mockItems = generateMockItems(12, shelfType)
-
-            const searchResults: SearchResult[] = mockItems.map(item => ({
-                id: item.id,
-                title: item.title,
-                mediaType: typeToUse as MediaType,
-                rating: item.rating,
-                releaseDate: `${item.year}-01-01`,
-                posterPath: item.posterUrl,
-            }))
-
-            setResults(searchResults)
-            setIsLoading(false)
         }
 
         performSearch()
