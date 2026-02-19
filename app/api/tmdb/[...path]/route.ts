@@ -11,7 +11,8 @@ export async function GET(
     // Validate Token presence server-side
     const token = process.env.TMDB_READ_ACCESS_TOKEN;
     if (!token) {
-        return NextResponse.json({ error: "Server Configuration Error: Missing TMDB_READ_ACCESS_TOKEN" }, { status: 500 });
+        console.error("Missing TMDB_READ_ACCESS_TOKEN. Available Env Vars:", Object.keys(process.env).filter(k => k.startsWith("TMDB")));
+        return NextResponse.json({ error: "Server Configuration Error: Missing TMDB_READ_ACCESS_TOKEN (Check Vercel Settings)" }, { status: 500 });
     }
 
     // Reconstruct the path (e.g., ['search', 'multi'] -> '/search/multi')
