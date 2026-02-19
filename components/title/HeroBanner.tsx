@@ -22,7 +22,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
     } = titleDetail;
 
     // Embla Carousel
-    const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, duration: 40 });
+    const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
     const [selectedIndex, setSelectedIndex] = useState(0);
 
     const onSelect = useCallback(() => {
@@ -79,7 +79,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
             >
                 <div className="overflow-hidden h-full w-full" ref={emblaRef}>
                     <div className="flex h-full w-full touch-pan-y">
-                        {backdropImages.slice(0, 3).map((src, index) => (
+                        {backdropImages.map((src, index) => (
                             <div key={index} className="relative flex-[0_0_100%] h-full w-full min-w-0">
                                 <Image
                                     src={src}
@@ -101,7 +101,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                 {/* Carousel Dots */}
                 {backdropImages.length > 1 && (
                     <div className="absolute bottom-4 right-4 z-20 flex gap-2">
-                        {backdropImages.slice(0, 3).map((_, index) => (
+                        {backdropImages.map((_, index) => (
                             <button
                                 key={index}
                                 onClick={() => emblaApi && emblaApi.scrollTo(index)}
@@ -117,7 +117,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
             </motion.div>
 
             {/* Content Container */}
-            <div className="absolute inset-0 z-10 container mx-auto px-4 flex flex-col justify-end pb-12 md:pb-24">
+            <div className="absolute inset-0 z-10 container mx-auto px-4 flex flex-col justify-end pb-12 md:pb-24 pointer-events-none">
                 <div className="flex flex-col md:flex-row items-end gap-8 md:gap-12">
 
                     {/* Floating Poster */}
@@ -196,7 +196,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                         </p>
 
                         {/* Action Buttons */}
-                        <div className="flex items-center gap-4 pt-4">
+                        <div className="flex items-center gap-4 pt-4 pointer-events-auto">
                             <button className="flex items-center gap-2 bg-white text-black px-8 py-3.5 rounded-full font-bold hover:bg-neutral-200 transition-colors text-lg shadow-lg shadow-white/10">
                                 <Play size={20} className="fill-current" />
                                 <span>Play</span>

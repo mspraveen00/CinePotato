@@ -67,7 +67,8 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
         // Backdrop Logic
         const topBackdrops = images.backdrops
             .sort((a, b) => b.vote_average - a.vote_average)
-            .slice(0, 5)
+            .sort((a, b) => b.vote_average - a.vote_average)
+            .slice(0, 20)
             .map(b => `https://image.tmdb.org/t/p/original${b.file_path}`);
 
         if (topBackdrops.length === 0 && tv.backdrop_path) {
