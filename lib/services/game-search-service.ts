@@ -29,8 +29,17 @@ export async function searchGames(query: string): Promise<SearchResult[]> {
         });
 
         if (!res.ok) {
-            console.error(`IGDB Search Error: ${res.status}`);
-            return [];
+            let errorMessage = `IGDB Search Error: ${res.status}`;
+            try {
+                const errorData = await res.json();
+                if (errorData.error) {
+                    errorMessage = errorData.error;
+                }
+            } catch (e) {
+                // Ignore
+            }
+            console.error(errorMessage);
+            throw new Error(errorMessage);
         }
 
         const data: IGDBGame[] = await res.json();

@@ -103,7 +103,16 @@ export async function searchTitles(query: string, type?: MediaType): Promise<Sea
         const res = await fetch(`/api/tmdb/search/multi?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`);
 
         if (!res.ok) {
-            throw new Error(`Search API Error: ${res.status}`);
+            let errorMessage = `Search API Error: ${res.status}`;
+            try {
+                const errorData = await res.json();
+                if (errorData.error) {
+                    errorMessage = errorData.error;
+                }
+            } catch (e) {
+                // Ignore if not JSON
+            }
+            throw new Error(errorMessage);
         }
 
         const data: TMDBSearchResponse = await res.json();
