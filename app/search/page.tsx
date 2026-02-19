@@ -123,7 +123,7 @@ export default function SearchPage() {
                     onChange={setQuery}
                     onClear={() => setQuery("")}
                 />
-                <div className="text-[10px] text-neutral-600 text-center mt-1">v2.0 (Debug Build)</div>
+                <div className="text-[10px] text-neutral-600 text-center mt-1">v2.1 (Env Debug)</div>
             </div>
 
             {/* Scrollable Controls Area */}

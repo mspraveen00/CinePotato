@@ -13,10 +13,11 @@ export async function GET(
     const token = process.env.TMDB_READ_ACCESS_TOKEN;
     if (!token) {
         // Safe debug: List keys (not values) to see what Vercel is actually providing
-        const availableKeys = Object.keys(process.env).filter(k => !k.startsWith('VERCEL_') && !k.startsWith('SYSTEM_'));
-        console.error("Missing token. Available:", availableKeys);
+        const availableKeys = Object.keys(process.env).filter(k => !k.startsWith('VERCEL_') && !k.startsWith('SYSTEM_') && !k.startsWith('npm_'));
+        const debugString = `Missing TMDB_READ_ACCESS_TOKEN. Available: ${availableKeys.join(', ')}`;
+        console.error(debugString);
         return NextResponse.json({
-            error: "Server Configuration Error: Missing TMDB_READ_ACCESS_TOKEN",
+            error: debugString,
             debug: {
                 availableEnvKeys: availableKeys,
                 nodeEnv: process.env.NODE_ENV,
