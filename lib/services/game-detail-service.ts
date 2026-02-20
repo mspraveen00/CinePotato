@@ -43,7 +43,7 @@ export async function getGameDetail(id: string): Promise<TitleDetail | null> {
             .filter(a => [7, 5, 6].includes(a.artwork_type))
             .sort((a, b) => {
                 const priority = { 7: 0, 5: 1, 6: 2 };
-                return (priority[a.artwork_type as keyof typeof priority] || 9) - (priority[b.artwork_type as keyof typeof priority] || 9);
+                return (priority[a.artwork_type as keyof typeof priority] ?? 9) - (priority[b.artwork_type as keyof typeof priority] ?? 9);
             })[0];
 
         // Use PNG for logos to ensure transparency if available
