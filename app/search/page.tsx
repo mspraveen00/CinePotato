@@ -55,8 +55,12 @@ export default function SearchPage() {
     // Update filters when active type changes (reset/default)
     React.useEffect(() => {
         setFilters(prev => ({ ...prev, mediaTypes: [activeType] }))
-        // Do NOT update activeFilters here automatically for Advanced Mode
-        // But for "Recent/Global" mode, maybe?
+        // Auto-search when media type changes if there's already a query
+        if (query) {
+            setActiveFilters(prev => ({ ...(prev || {}), query, mediaTypes: [activeType] }))
+            setMode("recent") // Ensure we show results when switching types with an active search
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeType])
 
     const handleApplyFilters = () => {
