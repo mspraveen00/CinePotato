@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
-import { Star, Share2, Plus, Play } from 'lucide-react';
+import { Star, MoreVertical } from 'lucide-react';
 import { HeroBannerProps } from '@/types/title';
 import { cn } from '@/lib/utils';
 
@@ -65,10 +65,23 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
 
     return (
         <div className="relative w-full h-[80vh] md:h-[90vh] overflow-hidden bg-neutral-900">
+            {/* Context Menu / 3-Dots */}
+            <motion.div
+                className="absolute top-4 right-4 md:top-6 md:right-6 z-40"
+                style={{ opacity: contentOpacity, y: contentY }}
+            >
+                <button
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-neutral-800/50 backdrop-blur-md border border-neutral-600/50 text-white hover:bg-neutral-700/80 hover:border-neutral-500 transition-all pointer-events-auto"
+                    title="More Options"
+                >
+                    <MoreVertical size={20} className="hover:text-primary transition-colors" />
+                </button>
+            </motion.div>
+
             {/* Sticky Header (Hidden initially) */}
             <motion.div
                 style={{ opacity: headerOpacity, y: headerY }}
-                className="fixed top-0 left-0 right-0 z-50 bg-neutral-900/90 backdrop-blur-md border-b border-neutral-800 px-4 py-3 flex items-center justify-center"
+                className="fixed top-0 left-0 right-0 z-50 bg-neutral-900/90 backdrop-blur-md border-b border-neutral-800 px-4 py-3 flex items-center justify-center pointer-events-none"
             >
                 <div className="container mx-auto flex items-center justify-center gap-4">
                     {currentLogo ? (
@@ -212,22 +225,6 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                         <p className="md:hidden text-neutral-300 line-clamp-3 text-sm leading-relaxed max-w-xl">
                             {overview}
                         </p>
-
-                        {/* Action Buttons */}
-                        <div className="flex items-center gap-4 pt-4 pointer-events-auto">
-                            <button className="flex items-center gap-2 bg-white text-black px-8 py-3.5 rounded-full font-bold hover:bg-neutral-200 transition-colors text-lg shadow-lg shadow-white/10">
-                                <Play size={20} className="fill-current" />
-                                <span>Play</span>
-                            </button>
-
-                            <button className="flex items-center justify-center w-12 h-12 rounded-full bg-neutral-800/80 backdrop-blur-md border border-neutral-600 text-white hover:bg-neutral-700/80 hover:border-neutral-500 transition-all group">
-                                <Plus size={24} className="group-hover:text-primary transition-colors" />
-                            </button>
-
-                            <button className="flex items-center justify-center w-12 h-12 rounded-full bg-neutral-800/80 backdrop-blur-md border border-neutral-600 text-white hover:bg-neutral-700/80 hover:border-neutral-500 transition-all group">
-                                <Share2 size={20} className="group-hover:text-blue-400 transition-colors" />
-                            </button>
-                        </div>
                     </motion.div>
                 </div>
             </div>
