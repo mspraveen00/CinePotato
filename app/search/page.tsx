@@ -92,17 +92,33 @@ export default function SearchPage() {
                 const typeToSearch = currentFilters.mediaTypes?.[0] || activeType;
                 const searchResults = await searchTitles(searchQuery, typeToSearch);
 
-                // Client-side filtering to match the specific "tab" behavior if needed, 
-                // although Multi-Search might be what we want generally.
-                // The UI has "activeType" tabs. Let's filter by it to mock the behavior of "Movie Tab" vs "TV Tab".
-                // Note: activeType can be 'movie', 'tv', 'game', 'person'
-
                 const filteredResults = searchResults.filter(item => {
-                    // If activeType is 'game', and TMDB doesn't really have games, we might get nothing.
-                    // But for 'movie' and 'tv', we should filter.
-                    // If we want "Multi" result in "All"? The UI has specific tabs.
+                    if (item.mediaType !== typeToSearch) return false;
 
-                    return item.mediaType === typeToSearch;
+                    // Apply Advanced Filters
+                    if (currentFilters.minRating && (item.rating || 0) < currentFilters.minRating) return false;
+
+                    if (currentFilters.genres && currentFilters.genres.length > 0) {
+                        if (!item.genreIds || !currentFilters.genres.some(g => item.genreIds!.includes(g))) return false;
+                    }
+
+                    if (currentFilters.releaseDecade) {
+                        if (!item.releaseDate) return false;
+                        const year = parseInt(item.releaseDate.split('-')[0]);
+                        if (currentFilters.releaseYear) {
+                            if (year !== currentFilters.releaseYear) return false;
+                        } else {
+                            if (year < currentFilters.releaseDecade || year >= currentFilters.releaseDecade + 10) return false;
+                        }
+                    } else if (currentFilters.releaseYear) {
+                        if (!item.releaseDate) return false;
+                        const year = parseInt(item.releaseDate.split('-')[0]);
+                        if (year !== currentFilters.releaseYear) return false;
+                    }
+
+                    if (currentFilters.minVotes && (item.voteCount || 0) < currentFilters.minVotes) return false;
+
+                    return true;
                 });
 
                 setResults(filteredResults);
@@ -182,7 +198,7 @@ export default function SearchPage() {
                         filters={filters}
                         onChange={setFilters}
                         onReset={() => setFilters({ query, mediaTypes: [activeType] })}
-                        onApply={() => { /* Auto-applies */ }}
+                        onApply={handleApplyFilters}
                         activeMediaType={activeType}
                     />
                 )}

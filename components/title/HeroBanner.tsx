@@ -18,8 +18,18 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
         runtime,
         genres,
         rating,
-        logoPath,
+        logos,
     } = titleDetail;
+
+    const [logoIndex, setLogoIndex] = useState(0);
+    const hasLogos = logos && logos.length > 0;
+    const currentLogo = hasLogos ? logos[logoIndex] : undefined;
+
+    const handleLogoDoubleClick = () => {
+        if (logos && logos.length > 1) {
+            setLogoIndex((prev) => (prev + 1) % logos.length);
+        }
+    };
 
     // Embla Carousel
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
@@ -61,9 +71,13 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                 className="fixed top-0 left-0 right-0 z-50 bg-neutral-900/90 backdrop-blur-md border-b border-neutral-800 px-4 py-3 flex items-center justify-center"
             >
                 <div className="container mx-auto flex items-center justify-center gap-4">
-                    {logoPath ? (
-                        <div className="relative h-8 w-32">
-                            <Image src={logoPath} alt={title} fill className="object-contain object-center" />
+                    {currentLogo ? (
+                        <div
+                            className="relative h-8 w-32 select-none cursor-pointer pointer-events-auto"
+                            onDoubleClick={handleLogoDoubleClick}
+                            title={logos && logos.length > 1 ? "Double click to change logo" : undefined}
+                        >
+                            <Image src={currentLogo} alt={title} fill className="object-contain object-center" />
                         </div>
                     ) : (
                         <h2 className="text-lg font-bold text-white truncate">{title}</h2>
@@ -141,13 +155,17 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                     >
                         {/* Title / Logo */}
                         <div className="mb-4">
-                            {logoPath ? (
-                                <div className="relative h-24 md:h-32 w-64 md:w-96 mb-4 origin-left">
+                            {currentLogo ? (
+                                <div
+                                    className="relative h-24 md:h-32 w-64 md:w-96 mb-4 origin-left select-none cursor-pointer pointer-events-auto"
+                                    onDoubleClick={handleLogoDoubleClick}
+                                    title={logos && logos.length > 1 ? "Double click to change logo" : undefined}
+                                >
                                     <Image
-                                        src={logoPath}
+                                        src={currentLogo}
                                         alt={title}
                                         fill
-                                        className="object-contain object-left"
+                                        className="object-contain object-left pointer-events-none"
                                         priority
                                     />
                                 </div>

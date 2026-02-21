@@ -12,6 +12,7 @@ interface TMDBTVShow {
     vote_average: number;
     poster_path: string;
     backdrop_path: string;
+    original_language: string;
 }
 
 interface TMDBImage {
@@ -51,18 +52,43 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
         const [tv, images] = await Promise.all([tvPromise, imagesPromise]);
 
         // Logo Logic
-        const validLogos = images.logos.filter(
-            l => l.iso_639_1 === 'en' || l.iso_639_1 === null
-        );
+        const logos: string[] = [];
 
-        validLogos.sort((a, b) => {
-            if (b.vote_average !== a.vote_average) {
-                return b.vote_average - a.vote_average;
+        const getBestLogo = (lang: string | null) => {
+            const matches = images.logos.filter(l => l.iso_639_1 === lang);
+            if (matches.length === 0) return null;
+            matches.sort((a, b) => {
+                if (b.vote_average !== a.vote_average) return b.vote_average - a.vote_average;
+                return b.width - a.width;
+            });
+            return matches[0];
+        };
+
+        const origLang = tv.original_language;
+        let originalLogo = null;
+
+        if (origLang && origLang !== 'en') {
+            originalLogo = getBestLogo(origLang);
+            if (originalLogo) {
+                logos.push(`https://image.tmdb.org/t/p/original${originalLogo.file_path}`);
             }
-            return b.width - a.width;
-        });
+        }
 
-        const bestLogo = validLogos.length > 0 ? validLogos[0] : null;
+        const englishLogos = images.logos.filter(l => l.iso_639_1 === 'en' || l.iso_639_1 === null)
+            .sort((a, b) => {
+                if (b.vote_average !== a.vote_average) return b.vote_average - a.vote_average;
+                return b.width - a.width;
+            });
+
+        if (originalLogo) {
+            if (englishLogos.length > 0) {
+                logos.push(`https://image.tmdb.org/t/p/original${englishLogos[0].file_path}`);
+            }
+        } else {
+            englishLogos.slice(0, 2).forEach(logo => {
+                logos.push(`https://image.tmdb.org/t/p/original${logo.file_path}`);
+            });
+        }
 
         // Backdrop Logic
         const topBackdrops = images.backdrops
@@ -92,9 +118,7 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
             runtime: runtime,
             genres: tv.genres.map(g => g.name),
             rating: parseFloat(tv.vote_average.toFixed(1)),
-            logoPath: bestLogo
-                ? `https://image.tmdb.org/t/p/original${bestLogo.file_path}`
-                : undefined,
+            logos: logos.length > 0 ? logos : undefined,
         };
 
     } catch (error) {

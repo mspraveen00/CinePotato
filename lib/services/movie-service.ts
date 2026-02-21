@@ -14,6 +14,7 @@ interface TMDBMovie {
     vote_average: number;
     poster_path: string;
     backdrop_path: string;
+    original_language: string;
 }
 
 interface TMDBImage {
@@ -55,18 +56,46 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
         const [movie, images] = await Promise.all([moviePromise, imagesPromise]);
 
         // 2. Logo Logic
-        const validLogos = images.logos.filter(
-            l => l.iso_639_1 === 'en' || l.iso_639_1 === null
-        );
+        const logos: string[] = [];
 
-        validLogos.sort((a, b) => {
-            if (b.vote_average !== a.vote_average) {
-                return b.vote_average - a.vote_average;
+        const getBestLogo = (lang: string | null) => {
+            const matches = images.logos.filter(l => l.iso_639_1 === lang);
+            if (matches.length === 0) return null;
+            // Sort by vote average, then width
+            matches.sort((a, b) => {
+                if (b.vote_average !== a.vote_average) return b.vote_average - a.vote_average;
+                return b.width - a.width;
+            });
+            return matches[0];
+        };
+
+        const origLang = movie.original_language;
+        let originalLogo = null;
+
+        if (origLang && origLang !== 'en') {
+            originalLogo = getBestLogo(origLang);
+            if (originalLogo) {
+                logos.push(`https://image.tmdb.org/t/p/original${originalLogo.file_path}`);
             }
-            return b.width - a.width;
-        });
+        }
 
-        const bestLogo = validLogos.length > 0 ? validLogos[0] : null;
+        const englishLogos = images.logos.filter(l => l.iso_639_1 === 'en' || l.iso_639_1 === null)
+            .sort((a, b) => {
+                if (b.vote_average !== a.vote_average) return b.vote_average - a.vote_average;
+                return b.width - a.width;
+            });
+
+        if (originalLogo) {
+            // Found original language logo, add 1 English logo if available
+            if (englishLogos.length > 0) {
+                logos.push(`https://image.tmdb.org/t/p/original${englishLogos[0].file_path}`);
+            }
+        } else {
+            // No original language logo found, return up to 2 English logos
+            englishLogos.slice(0, 2).forEach(logo => {
+                logos.push(`https://image.tmdb.org/t/p/original${logo.file_path}`);
+            });
+        }
 
         // 3. Backdrop Logic
         const topBackdrops = images.backdrops
@@ -94,9 +123,7 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
                 : "N/A",
             genres: movie.genres.map(g => g.name),
             rating: parseFloat(movie.vote_average.toFixed(1)),
-            logoPath: bestLogo
-                ? `https://image.tmdb.org/t/p/original${bestLogo.file_path}`
-                : undefined,
+            logos: logos.length > 0 ? logos : undefined,
         };
 
     } catch (error) {

@@ -49,7 +49,7 @@ export function generateMockDetail(id: string): TitleDetail {
         runtime: "1h 30m",
         genres: ["Mock Action", "Mock Adventure"],
         rating: 7.5,
-        logoPath: undefined
+        logos: undefined
     }
 }
 
@@ -64,7 +64,7 @@ export function generateMockTVDetail(id: string): TitleDetail {
         runtime: "45m",
         genres: ["Mock Drama", "Mock Sci-Fi"],
         rating: 8.2,
-        logoPath: undefined
+        logos: undefined
     }
 }
 
@@ -79,6 +79,6 @@ export function generateMockPersonDetail(id: string): TitleDetail {
         runtime: "N/A",
         genres: ["Acting"],
         rating: 0,
-        logoPath: undefined
+        logos: undefined
     }
 }

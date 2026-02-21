@@ -12,5 +12,5 @@ export interface TitleDetail {
     runtime: string; // e.g., "2h 15m"
     genres: string[];
     rating: number; // 0-10
-    logoPath?: string;
+    logos?: string[];
 }

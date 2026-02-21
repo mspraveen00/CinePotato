@@ -39,17 +39,18 @@ export async function getGameDetail(id: string): Promise<TitleDetail | null> {
 
         // Logo Logic: Look for Game Logo types (7=Color, 5=White, 6=Black)
         // We prefer Color (7) -> White (5) -> Black (6)
-        const logoArt = rawArtworks
+        const logos: string[] = [];
+        const logoArts = rawArtworks
             .filter(a => [7, 5, 6].includes(a.artwork_type))
             .sort((a, b) => {
                 const priority = { 7: 0, 5: 1, 6: 2 };
                 return (priority[a.artwork_type as keyof typeof priority] ?? 9) - (priority[b.artwork_type as keyof typeof priority] ?? 9);
-            })[0];
+            }).slice(0, 2);
 
         // Use PNG for logos to ensure transparency if available
-        const logoPath = logoArt
-            ? `https://images.igdb.com/igdb/image/upload/t_1080p/${logoArt.image_id}.png`
-            : undefined;
+        logoArts.forEach(logoArt => {
+            logos.push(`https://images.igdb.com/igdb/image/upload/t_1080p/${logoArt.image_id}.png`);
+        });
 
         // Backdrop Logic
         // 1. Key Art without Logo (Type 2) - Highest Priority
@@ -97,7 +98,7 @@ export async function getGameDetail(id: string): Promise<TitleDetail | null> {
             // UI uses `genres` for the main chips.
             genres: (game.genres || []).map(g => g.name),
             rating: game.total_rating ? parseFloat((game.total_rating / 10).toFixed(1)) : 0,
-            logoPath: logoPath
+            logos: logos.length > 0 ? logos : undefined
         };
 
     } catch (error) {
