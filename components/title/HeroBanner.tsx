@@ -144,7 +144,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
             </motion.div>
 
             {/* Content Container */}
-            <div className="absolute inset-0 z-10 container mx-auto px-4 flex flex-col justify-end pb-12 md:pb-24 pointer-events-none">
+            <div className="absolute inset-0 z-10 container mx-auto px-4 flex flex-col justify-end pb-4 md:pb-8 pointer-events-none">
                 <div className="flex flex-row items-end gap-4 sm:gap-6 md:gap-12">
 
                     {/* Floating Poster */}
