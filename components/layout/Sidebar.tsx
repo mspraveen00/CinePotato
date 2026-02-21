@@ -9,15 +9,33 @@ import { cn } from "@/lib/utils"
 interface SidebarProps {
     mobileOpen?: boolean
     onMobileClose?: () => void
+    isTitlePage?: boolean
 }
 
-export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
+export function Sidebar({ mobileOpen = false, onMobileClose, isTitlePage = false }: SidebarProps) {
     const pathname = usePathname()
     const [isHovered, setIsHovered] = React.useState(false)
     const [isPinned, setIsPinned] = React.useState(false)
+    const [isTeasing, setIsTeasing] = React.useState(false) // For the initial 1-second tease
 
     // Combined expanded state
     const isExpanded = isHovered || isPinned
+
+    // Visibility state
+    const isVisible = isExpanded || isTeasing || !isTitlePage
+
+    // Tease effect on title pages
+    React.useEffect(() => {
+        if (isTitlePage) {
+            setIsTeasing(true)
+            const timer = setTimeout(() => {
+                setIsTeasing(false)
+            }, 1200) // Show for 1.2 seconds before hiding
+            return () => clearTimeout(timer)
+        } else {
+            setIsTeasing(false)
+        }
+    }, [pathname, isTitlePage])
 
     // Toggle pin state
     const togglePin = () => setIsPinned(!isPinned)
@@ -80,7 +98,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
             <aside
                 className={cn(
                     // Common Layout Styles
-                    "fixed z-[70] flex flex-col transition-[width,transform] duration-300 ease-in-out will-change-[width,transform]",
+                    "fixed z-[70] flex flex-col transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[width,transform]",
 
                     // Mobile Positioning (Right attached)
                     "top-0 right-0 h-screen w-64",
@@ -89,9 +107,13 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                     // Desktop Positioning (Left floating-ish)
                     // The container touches the wall (left-0) to capture hover, 
                     // but we add padding (pl-1) to create the visual gap.
-                    "md:translate-x-0",
+                    // If it's a Title page and NOT visible, we push it completely off screen.
+                    isTitlePage && !isVisible
+                        ? "-translate-x-full md:-translate-x-[calc(100%-2px)]"
+                        : "md:translate-x-0",
                     "md:left-0 md:top-2 md:bottom-2 md:h-[calc(100vh-1rem)]",
-                    "md:pl-1", // The 4px cursor-catch gap
+                    // When on a title page and hidden, we don't need the visual gap padding until it reveals
+                    isTitlePage && !isVisible ? "" : "md:pl-1", // The 4px cursor-catch gap
 
                     // Width handling (Content + Gap)
                     isExpanded ? "md:w-[260px]" : "md:w-[68px]" // 256+4 and 64+4
@@ -108,8 +130,8 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                     "bg-gradient-to-b from-transparent via-white/[0.02] to-transparent", // Subtle inner gradient
 
                     // Borders & depth
-                    "border-l md:border border-[rgba(255,255,255,0.08)]", // Edge highlight
-                    "shadow-[0_0_40px_rgba(0,0,0,0.7),inset_1px_0_1px_rgba(255,255,255,0.05),inset_1px_0_20px_rgba(0,100,255,0.05)]", // Deep outer shadow + Edge highlight + Subtle blue glow
+                    "border-l md:border border-[rgba(255,255,255,0.08)]",
+                    "shadow-[0_0_40px_rgba(0,0,0,0.7),inset_1px_0_1px_rgba(255,255,255,0.05),inset_1px_0_20px_rgba(0,100,255,0.05)]",
 
                     // Desktop Visuals
                     "md:rounded-2xl"
