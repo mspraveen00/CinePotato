@@ -145,11 +145,11 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
 
             {/* Content Container */}
             <div className="absolute inset-0 z-10 container mx-auto px-4 flex flex-col justify-end pb-12 md:pb-24 pointer-events-none">
-                <div className="flex flex-col md:flex-row items-end gap-8 md:gap-12">
+                <div className="flex flex-row items-end gap-4 sm:gap-6 md:gap-12">
 
                     {/* Floating Poster */}
                     <motion.div
-                        className="hidden md:block w-64 aspect-[2/3] relative rounded-lg shadow-2xl shadow-black/50 overflow-hidden border border-neutral-700/50 flex-shrink-0"
+                        className="w-28 sm:w-36 md:w-64 aspect-[2/3] relative rounded-lg shadow-2xl shadow-black/50 overflow-hidden border border-neutral-700/50 flex-shrink-0"
                         style={{ scale: posterScale, y: posterY, opacity: posterOpacity }}
                     >
                         <Image
@@ -163,14 +163,14 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
 
                     {/* Metadata & Actions */}
                     <motion.div
-                        className="flex-1 space-y-6 w-full"
+                        className="flex-1 space-y-2 md:space-y-6 w-full"
                         style={{ opacity: contentOpacity, y: contentY }}
                     >
                         {/* Title / Logo */}
-                        <div className="mb-4">
+                        <div className="mb-2 md:mb-4">
                             {currentLogo ? (
                                 <div
-                                    className="relative h-24 md:h-32 w-64 md:w-96 mb-4 origin-left select-none cursor-pointer pointer-events-auto"
+                                    className="relative h-16 sm:h-20 md:h-32 w-40 sm:w-56 md:w-96 mb-2 md:mb-4 origin-left select-none cursor-pointer pointer-events-auto"
                                     onDoubleClick={handleLogoDoubleClick}
                                     title={logos && logos.length > 1 ? "Double click to change logo" : undefined}
                                 >
@@ -183,14 +183,14 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                                     />
                                 </div>
                             ) : (
-                                <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight drop-shadow-xl mb-2">
+                                <h1 className="text-2xl sm:text-3xl md:text-6xl font-black text-white tracking-tight drop-shadow-xl mb-2">
                                     {title}
                                 </h1>
                             )}
                         </div>
 
                         {/* Metadata Row */}
-                        <div className="flex flex-wrap items-center gap-4 text-sm md:text-base font-medium text-neutral-300">
+                        <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs sm:text-sm md:text-base font-medium text-neutral-300">
                             <span className="bg-neutral-800/80 backdrop-blur-sm px-2 py-1 rounded text-white border border-neutral-700">
                                 {releaseYear}
                             </span>
@@ -205,26 +205,20 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                         </div>
 
                         {/* Rating */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 md:gap-2 mt-1 md:mt-0">
                             <div className="flex">
                                 {[...Array(5)].map((_, i) => (
                                     <Star
                                         key={i}
-                                        size={18}
                                         className={cn(
-                                            "fill-current",
+                                            "w-3.5 h-3.5 md:w-[18px] md:h-[18px] fill-current",
                                             i < Math.round(rating / 2) ? "text-yellow-500" : "text-neutral-600"
                                         )}
                                     />
                                 ))}
                             </div>
-                            <span className="text-neutral-400 text-sm">({rating.toFixed(1)}) / 10</span>
+                            <span className="text-neutral-400 text-xs md:text-sm">({rating.toFixed(1)}) / 10</span>
                         </div>
-
-                        {/* Overview (Mobile Only - simplified) */}
-                        <p className="md:hidden text-neutral-300 line-clamp-3 text-sm leading-relaxed max-w-xl">
-                            {overview}
-                        </p>
                     </motion.div>
                 </div>
             </div>
