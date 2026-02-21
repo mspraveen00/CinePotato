@@ -9,10 +9,11 @@ import { cn } from "@/lib/utils"
 interface ContentShelfProps {
     title: string
     items: ExploreItem[]
+    mediaType: "movies" | "tv" | "games"
     className?: string
 }
 
-export function ContentShelf({ title, items, className }: ContentShelfProps) {
+export function ContentShelf({ title, items, mediaType, className }: ContentShelfProps) {
     return (
         <section className={cn("flex flex-col gap-4 py-4", className)}>
             {/* Shelf Header - Padding matches gap (4 = 1rem) */}
@@ -36,7 +37,7 @@ export function ContentShelf({ title, items, className }: ContentShelfProps) {
                             index === 0 && "ml-4 md:ml-8", // Left spacing for first item
                         )}
                     >
-                        <MediaCard item={item} />
+                        <MediaCard item={item} mediaType={mediaType} />
                     </div>
                 ))}
 

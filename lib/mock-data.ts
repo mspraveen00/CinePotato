@@ -1,4 +1,4 @@
-import { MockItem, ShelfType } from "@/lib/constants/explore"
+import { ExploreItem, ShelfType } from "@/lib/constants/explore"
 import { TitleDetail } from "@/types/title"
 
 const MOCK_TITLES: Record<ShelfType, string[]> = {
@@ -12,8 +12,8 @@ const MOCK_COLORS = [
     "bg-pink-500", "bg-indigo-500", "bg-teal-500", "bg-orange-500", "bg-cyan-500"
 ]
 
-export function generateMockItems(count: number, type: ShelfType): MockItem[] {
-    const items: MockItem[] = []
+export function generateMockItems(count: number, type: ShelfType): ExploreItem[] {
+    const items: ExploreItem[] = []
     for (let i = 0; i < count; i++) {
         // Simple sequential titles as requested
         const prefix = type === "movies" ? "Mock Movie" :
