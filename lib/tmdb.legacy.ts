@@ -110,8 +110,8 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
                 : "N/A",
             genres: movie.genres.map(g => g.name),
             rating: parseFloat(movie.vote_average.toFixed(1)),
-            logoPath: bestLogo
-                ? `https://image.tmdb.org/t/p/original${bestLogo.file_path}`
+            logos: bestLogo
+                ? [`https://image.tmdb.org/t/p/original${bestLogo.file_path}`]
                 : undefined, // undefined triggers text title fallback
         };
 

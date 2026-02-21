@@ -63,7 +63,6 @@ export async function getPersonDetail(id: string): Promise<TitleDetail | null> {
             runtime: "N/A",
             genres: [person.known_for_department], // Map department to genre
             rating: 0, // Persons don't have vote_average usually, or we could use popularity?
-            logoPath: undefined,
         };
 
     } catch (error) {
