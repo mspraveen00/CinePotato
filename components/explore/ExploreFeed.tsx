@@ -33,7 +33,12 @@ export function ExploreFeed({ movies, tv, games }: ExploreFeedProps) {
 
                     return (
                         <React.Fragment key={shelf.id}>
-                            <ContentShelf title={shelf.title} items={shelf.items} mediaType={activeType} />
+                            <ContentShelf
+                                shelfId={shelf.id}
+                                title={shelf.title}
+                                items={shelf.items}
+                                mediaType={activeType}
+                            />
 
                             {activeType === "movies" && index === 1 && (
                                 <LetterboxdSection />

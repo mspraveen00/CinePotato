@@ -137,12 +137,12 @@ interface TMDBListResponse {
     results: TMDBTVShow[];
 }
 
-export async function getExploreTVs(shelfId: string): Promise<ExploreItem[]> {
+export async function getExploreTVs(shelfId: string, limit: number = 10): Promise<ExploreItem[]> {
     const useMock = process.env.USE_MOCK === 'true';
 
     // We keep emmy_winners as mock for now
     if (useMock || shelfId === 'emmy_winners') {
-        return generateMockItems(10, 'tv');
+        return generateMockItems(limit, 'tv');
     }
 
     try {
@@ -163,7 +163,7 @@ export async function getExploreTVs(shelfId: string): Promise<ExploreItem[]> {
 
         const data = await fetchTMDB<TMDBListResponse>(endpoint);
 
-        return data.results.slice(0, 10).map(tv => ({
+        return data.results.slice(0, limit).map(tv => ({
             id: String(tv.id),
             title: tv.name,
             posterUrl: tv.poster_path ? `https://image.tmdb.org/t/p/w500${tv.poster_path}` : '',

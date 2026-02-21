@@ -76,7 +76,7 @@ export async function searchGames(query: string): Promise<SearchResult[]> {
 
 import { ExploreItem } from '@/lib/constants/explore';
 
-export async function getExploreGames(shelfId: string): Promise<ExploreItem[]> {
+export async function getExploreGames(shelfId: string, limit: number = 10): Promise<ExploreItem[]> {
     try {
         let queryBody = '';
         const currentTimestamp = Math.floor(Date.now() / 1000);
@@ -86,7 +86,7 @@ export async function getExploreGames(shelfId: string): Promise<ExploreItem[]> {
                 queryBody = `
                     fields name, cover.image_id, first_release_date, total_rating;
                     sort popularity desc;
-                    limit 20;
+                    limit ${limit};
                 `;
                 break;
             case 'anticipated_games':
@@ -94,7 +94,7 @@ export async function getExploreGames(shelfId: string): Promise<ExploreItem[]> {
                     fields name, cover.image_id, first_release_date, total_rating;
                     where first_release_date > ${currentTimestamp} & hypes != null;
                     sort hypes desc;
-                    limit 20;
+                    limit ${limit};
                 `;
                 break;
             case 'top_rated_games':
@@ -102,7 +102,7 @@ export async function getExploreGames(shelfId: string): Promise<ExploreItem[]> {
                     fields name, cover.image_id, first_release_date, total_rating;
                     where total_rating_count >= 100;
                     sort total_rating desc;
-                    limit 20;
+                    limit ${limit};
                 `;
                 break;
             case 'best_selling_games':
@@ -110,7 +110,7 @@ export async function getExploreGames(shelfId: string): Promise<ExploreItem[]> {
                     fields name, cover.image_id, first_release_date, total_rating;
                     where follows != null;
                     sort follows desc;
-                    limit 20;
+                    limit ${limit};
                 `;
                 break;
             case 'award_winning_games':
@@ -118,7 +118,7 @@ export async function getExploreGames(shelfId: string): Promise<ExploreItem[]> {
                     fields name, cover.image_id, first_release_date, total_rating;
                     where rating != null;
                     sort rating desc;
-                    limit 20;
+                    limit ${limit};
                 `;
                 break;
             default:
@@ -129,7 +129,7 @@ export async function getExploreGames(shelfId: string): Promise<ExploreItem[]> {
         const { fetchIGDB } = await import('@/lib/api/igdb');
         const data: IGDBGame[] = await fetchIGDB('games', queryBody);
 
-        return data.slice(0, 10).map(game => {
+        return data.slice(0, limit).map(game => {
             const imageId = game.cover?.image_id;
             const releaseDate = game.first_release_date
                 ? new Date(game.first_release_date * 1000)

@@ -1,26 +1,29 @@
 "use client"
-
 import * as React from "react"
+import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { MediaCard } from "./MediaCard"
 import { ExploreItem } from "@/lib/constants/explore"
 import { cn } from "@/lib/utils"
 
 interface ContentShelfProps {
+    shelfId: string
     title: string
     items: ExploreItem[]
     mediaType: "movies" | "tv" | "games"
     className?: string
 }
 
-export function ContentShelf({ title, items, mediaType, className }: ContentShelfProps) {
+export function ContentShelf({ shelfId, title, items, mediaType, className }: ContentShelfProps) {
     return (
         <section className={cn("flex flex-col gap-4 py-4", className)}>
             {/* Shelf Header - Padding matches gap (4 = 1rem) */}
-            <h2 className="flex items-center gap-2 text-xl font-bold text-white px-4 md:px-8 cursor-pointer group hover:text-blue-400 transition-colors">
-                <span>{title}</span>
-                <ChevronRight className="text-neutral-500 group-hover:text-blue-400 transition-colors" size={20} />
-            </h2>
+            <Link href={`/explore/${shelfId}`} className="block w-fit">
+                <h2 className="flex items-center gap-2 text-xl font-bold text-white px-4 md:px-8 cursor-pointer group hover:text-blue-400 transition-colors">
+                    <span>{title}</span>
+                    <ChevronRight className="text-neutral-500 group-hover:text-blue-400 transition-colors" size={20} />
+                </h2>
+            </Link>
 
             {/* Horizontal Scroll Container */}
             <div
@@ -42,7 +45,8 @@ export function ContentShelf({ title, items, mediaType, className }: ContentShel
                 ))}
 
                 {/* See All Card */}
-                <div
+                <Link
+                    href={`/explore/${shelfId}`}
                     className={cn(
                         "snap-start flex flex-col gap-2 w-[140px] md:w-[160px] flex-shrink-0 mr-4 md:mr-8 cursor-pointer group/see-all"
                     )}
@@ -56,7 +60,7 @@ export function ContentShelf({ title, items, mediaType, className }: ContentShel
                         </div>
                     </div>
                     <span className="text-sm font-medium text-transparent">Placeholder</span> {/* Spacer to align with titles */}
-                </div>
+                </Link>
             </div>
         </section>
     )

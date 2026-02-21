@@ -1,15 +1,18 @@
 "use client";
 
-import React from 'react';
-import { ViewMode } from '@/lib/store/user-lists-store';
-import { LayoutGrid, StretchHorizontal } from 'lucide-react';
+import React, { useState } from 'react';
+import { LayoutGrid, Grid3X3, StretchHorizontal, Menu, LayoutList } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+export type ViewMode = 'wide' | 'wide-3' | 'poster-2' | 'poster-3' | 'poster-4' | 'poster-5' | 'poster-6' | 'poster-7';
 
 interface ViewCyclerProps {
     currentMode: ViewMode;
     onChange: (mode: ViewMode) => void;
+    className?: string;
 }
 
-export function ViewCycler({ currentMode, onChange }: ViewCyclerProps) {
+export function ViewCycler({ currentMode, onChange, className }: ViewCyclerProps) {
     const cycleView = () => {
         // Cycle: Standard List -> Dense List -> Standard Grid -> Dense Grid -> repeat.
         // wide (2 Col) -> wide-3 (3 Col) -> poster-6 (6 Col) -> poster-7 (7 Col)
