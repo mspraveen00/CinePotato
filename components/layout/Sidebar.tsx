@@ -100,7 +100,10 @@ export function Sidebar({ mobileOpen = false, onMobileClose, isTitlePage = false
                     // Common Layout Styles
                     "fixed z-[70] flex flex-col transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[width,transform]",
 
-                    // Mobile Positioning (Right attached)
+                    // If it's a title page, completely hide this entire component DOM on mobile.
+                    isTitlePage ? "hidden md:flex" : "flex",
+
+                    // Mobile Positioning (Right attached - only applies if !isTitlePage)
                     "top-0 right-0 h-screen w-64",
                     mobileOpen ? "translate-x-0" : "translate-x-full",
 
