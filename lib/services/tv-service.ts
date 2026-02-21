@@ -1,6 +1,6 @@
 import { fetchTMDB } from '@/lib/api/tmdb';
 import { TitleDetail } from '@/types/title';
-import { generateMockTVDetail } from '@/lib/mock-data';
+import { generateMockTVDetail, generateMockItems } from '@/lib/mock-data';
 
 interface TMDBTVShow {
     id: number;
@@ -124,5 +124,54 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
     } catch (error) {
         console.error(`Failed to fetch TV details for ID ${id}:`, error);
         return null;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Explore Shelf Data Fetching
+// -----------------------------------------------------------------------------
+
+import { ExploreItem } from '@/lib/constants/explore';
+
+interface TMDBListResponse {
+    results: TMDBTVShow[];
+}
+
+export async function getExploreTVs(shelfId: string): Promise<ExploreItem[]> {
+    const useMock = process.env.USE_MOCK === 'true';
+
+    // We keep emmy_winners as mock for now
+    if (useMock || shelfId === 'emmy_winners') {
+        return generateMockItems(10, 'tv');
+    }
+
+    try {
+        let endpoint = '';
+        switch (shelfId) {
+            case 'trending_tv':
+                endpoint = '/trending/tv/week';
+                break;
+            case 'anticipated_tv':
+                endpoint = '/tv/on_the_air';
+                break;
+            case 'imdb_top_250_tv':
+                endpoint = '/tv/top_rated';
+                break;
+            default:
+                return []; // Unknown shelf
+        }
+
+        const data = await fetchTMDB<TMDBListResponse>(endpoint);
+
+        return data.results.slice(0, 10).map(tv => ({
+            id: String(tv.id),
+            title: tv.name,
+            posterUrl: tv.poster_path ? `https://image.tmdb.org/t/p/w500${tv.poster_path}` : '',
+            rating: parseFloat(tv.vote_average.toFixed(1)),
+            year: tv.first_air_date ? new Date(tv.first_air_date).getFullYear() : 0,
+        }));
+    } catch (error) {
+        console.error(`Failed to fetch explore TV shows for shelf ${shelfId}:`, error);
+        return [];
     }
 }

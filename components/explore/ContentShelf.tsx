@@ -3,12 +3,12 @@
 import * as React from "react"
 import { ChevronRight } from "lucide-react"
 import { MediaCard } from "./MediaCard"
-import { MockItem } from "@/lib/constants/explore"
+import { ExploreItem } from "@/lib/constants/explore"
 import { cn } from "@/lib/utils"
 
 interface ContentShelfProps {
     title: string
-    items: MockItem[]
+    items: ExploreItem[]
     className?: string
 }
 

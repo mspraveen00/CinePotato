@@ -4,12 +4,12 @@ import * as React from "react"
 import { MediaSwitcher } from "./MediaSwitcher"
 import { ContentShelf } from "./ContentShelf"
 import { LetterboxdSection } from "./LetterboxdSection"
-import { ShelfType, ShelfConfig, MockItem } from "@/lib/constants/explore"
+import { ShelfType, ShelfConfig, ExploreItem } from "@/lib/constants/explore"
 
 interface ExploreFeedProps {
-    movies: (ShelfConfig & { items: MockItem[] })[]
-    tv: (ShelfConfig & { items: MockItem[] })[]
-    games: (ShelfConfig & { items: MockItem[] })[]
+    movies: (ShelfConfig & { items: ExploreItem[] })[]
+    tv: (ShelfConfig & { items: ExploreItem[] })[]
+    games: (ShelfConfig & { items: ExploreItem[] })[]
 }
 
 export function ExploreFeed({ movies, tv, games }: ExploreFeedProps) {

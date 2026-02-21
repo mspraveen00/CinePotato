@@ -2,7 +2,7 @@
 // I need to import the RAW fetcher from lib/api/tmdb
 import { fetchTMDB } from '@/lib/api/tmdb';
 import { TitleDetail } from '@/types/title';
-import { generateMockDetail } from '@/lib/mock-data';
+import { generateMockDetail, generateMockItems } from '@/lib/mock-data';
 
 interface TMDBMovie {
     id: number;
@@ -129,5 +129,57 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
     } catch (error) {
         console.error(`Failed to fetch movie details for ID ${id}:`, error);
         return null;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Explore Shelf Data Fetching
+// -----------------------------------------------------------------------------
+
+import { ExploreItem } from '@/lib/constants/explore';
+
+interface TMDBListResponse {
+    results: TMDBMovie[];
+}
+
+export async function getExploreMovies(shelfId: string): Promise<ExploreItem[]> {
+    const useMock = process.env.USE_MOCK === 'true';
+
+    // We keep best_picture as mock for now as requested
+    if (useMock || shelfId === 'best_picture') {
+        return generateMockItems(10, "movies");
+    }
+
+    try {
+        let endpoint = '';
+        switch (shelfId) {
+            case 'trending_movies':
+                endpoint = '/trending/movie/week';
+                break;
+            case 'anticipated_movies':
+                endpoint = '/movie/upcoming';
+                break;
+            case 'imdb_top_250_movies':
+                endpoint = '/movie/top_rated';
+                break;
+            case 'box_office':
+                endpoint = '/discover/movie?sort_by=revenue.desc';
+                break;
+            default:
+                return []; // Unknown shelf
+        }
+
+        const data = await fetchTMDB<TMDBListResponse>(endpoint);
+
+        return data.results.slice(0, 10).map(movie => ({
+            id: String(movie.id),
+            title: movie.title,
+            posterUrl: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : '',
+            rating: parseFloat(movie.vote_average.toFixed(1)),
+            year: movie.release_date ? new Date(movie.release_date).getFullYear() : 0,
+        }));
+    } catch (error) {
+        console.error(`Failed to fetch explore movies for shelf ${shelfId}:`, error);
+        return [];
     }
 }

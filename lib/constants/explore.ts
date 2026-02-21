@@ -28,7 +28,7 @@ export const GAME_SHELVES: ShelfConfig[] = [
     { id: 'award_winning_games', title: 'Award-Winning Games' },
 ];
 
-export interface MockItem {
+export interface ExploreItem {
     id: string;
     title: string;
     posterUrl: string; // Placeholder color or simple text for now
