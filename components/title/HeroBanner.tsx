@@ -118,8 +118,8 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                                     quality={90}
                                 />
                                 {/* Dark Gradient Overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/50 to-transparent" />
-                                <div className="absolute inset-0 bg-gradient-to-r from-neutral-900/80 via-transparent to-transparent" />
+                                <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-neutral-900 via-neutral-900/30 to-transparent" />
+                                <div className="absolute inset-y-0 left-0 w-full md:w-2/3 bg-gradient-to-r from-neutral-900/60 via-neutral-900/10 to-transparent" />
                             </div>
                         ))}
                     </div>
@@ -149,7 +149,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
 
                     {/* Floating Poster */}
                     <motion.div
-                        className="w-28 sm:w-36 md:w-64 aspect-[2/3] relative rounded-lg shadow-2xl shadow-black/50 overflow-hidden border border-neutral-700/50 flex-shrink-0"
+                        className="w-32 sm:w-40 md:w-64 aspect-[2/3] relative rounded-lg shadow-2xl shadow-black/50 overflow-hidden border border-neutral-700/50 flex-shrink-0"
                         style={{ scale: posterScale, y: posterY, opacity: posterOpacity }}
                     >
                         <Image
@@ -167,10 +167,10 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                         style={{ opacity: contentOpacity, y: contentY }}
                     >
                         {/* Title / Logo */}
-                        <div className="mb-2 md:mb-4">
+                        <div className="mb-2 md:mb-4 relative -top-3 md:top-0">
                             {currentLogo ? (
                                 <div
-                                    className="relative h-16 sm:h-20 md:h-32 w-40 sm:w-56 md:w-96 mb-2 md:mb-4 origin-left select-none cursor-pointer pointer-events-auto"
+                                    className="relative h-20 sm:h-24 md:h-32 w-48 sm:w-64 md:w-96 mb-2 md:mb-4 origin-left select-none cursor-pointer pointer-events-auto"
                                     onDoubleClick={handleLogoDoubleClick}
                                     title={logos && logos.length > 1 ? "Double click to change logo" : undefined}
                                 >
