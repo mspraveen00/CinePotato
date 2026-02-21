@@ -127,14 +127,14 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
 
                 {/* Carousel Dots */}
                 {backdropImages.length > 1 && (
-                    <div className="absolute bottom-4 right-4 z-20 flex gap-2">
+                    <div className="absolute bottom-2 md:bottom-4 left-0 right-0 md:left-auto flex justify-center md:justify-end md:right-4 px-4 z-20 gap-1.5 md:gap-2">
                         {backdropImages.map((_, index) => (
                             <button
                                 key={index}
                                 onClick={() => emblaApi && emblaApi.scrollTo(index)}
                                 className={cn(
-                                    "w-2 h-2 rounded-full transition-all duration-300",
-                                    index === selectedIndex ? "bg-white w-6" : "bg-neutral-500 hover:bg-neutral-400"
+                                    "w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all duration-300",
+                                    index === selectedIndex ? "bg-white w-4 md:w-6" : "bg-neutral-500 hover:bg-neutral-400"
                                 )}
                                 aria-label={`Go to slide ${index + 1}`}
                             />
@@ -144,7 +144,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
             </motion.div>
 
             {/* Content Container */}
-            <div className="absolute inset-0 z-10 container mx-auto px-4 flex flex-col justify-end pb-4 md:pb-8 pointer-events-none">
+            <div className="absolute inset-0 z-10 container mx-auto px-4 flex flex-col justify-end pb-6 md:pb-8 pointer-events-none">
                 <div className="flex flex-row items-end gap-4 sm:gap-6 md:gap-12">
 
                     {/* Floating Poster */}
