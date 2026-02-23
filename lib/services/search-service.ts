@@ -1,3 +1,5 @@
+"use server";
+
 import { SearchResult, MediaType } from '@/types/search';
 import { generateMockItems } from '@/lib/mock-data';
 import { searchGames } from '@/lib/services/game-search-service';
@@ -99,23 +101,9 @@ export async function searchTitles(query: string, type?: MediaType): Promise<Sea
         // Call the server-side proxy for TMDB multi-search (movies, tv, person)
         // If specific type is requested (movie/tv/person), we could use specific endpoints, 
         // but multi-search + filter is often easier unless pagination is strict.
-        // For now, let's stick to multi-search and filter if needed, OR just return all for 'multi'.
-        const res = await fetch(`/api/tmdb/search/multi?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`);
-
-        if (!res.ok) {
-            let errorMessage = `Search API Error: ${res.status}`;
-            try {
-                const errorData = await res.json();
-                if (errorData.error) {
-                    errorMessage = errorData.error;
-                }
-            } catch (e) {
-                // Ignore if not JSON
-            }
-            throw new Error(errorMessage);
-        }
-
-        const data: TMDBSearchResponse = await res.json();
+        // Call the TMDB API directly using the server-side utility
+        const { fetchTMDB } = await import('@/lib/api/tmdb');
+        const data = await fetchTMDB<TMDBSearchResponse>(`/search/multi?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`);
 
         return data.results
             .filter(item => {
