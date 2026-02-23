@@ -118,9 +118,8 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                                     quality={90}
                                     sizes="(max-width: 768px) 350vw, 100vw"
                                 />
-                                {/* Dark Gradient Overlay (temporarily removed for testing) */}
-                                {/* <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black via-black/30 to-transparent" /> */}
-                                {/* <div className="absolute inset-y-0 left-0 w-full md:w-2/3 bg-gradient-to-r from-black/60 via-black/10 to-transparent" /> */}
+                                {/* Feathered bottom edge to seamlessly blend into the black background */}
+                                <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black to-transparent" />
                             </div>
                         ))}
                     </div>
