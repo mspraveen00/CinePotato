@@ -107,7 +107,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                 <div className="overflow-hidden h-full w-full" ref={emblaRef}>
                     <div className="flex h-full w-full touch-pan-y">
                         {backdropImages.map((src, index) => (
-                            <div key={index} className="relative flex-[0_0_100%] h-full w-full min-w-0">
+                            <div key={index} className="relative flex-[0_0_100%] h-full w-full min-w-0 mr-[1px]">
                                 <Image
                                     src={src}
                                     alt={`Backdrop ${index + 1}`}
