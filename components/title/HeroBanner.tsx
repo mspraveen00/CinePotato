@@ -116,6 +116,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                                     priority={index === 0}
                                     loading={index === 0 ? "eager" : "lazy"}
                                     quality={90}
+                                    sizes="(max-width: 768px) 350vw, 100vw"
                                 />
                                 {/* Dark Gradient Overlay */}
                                 <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black via-black/30 to-transparent" />
