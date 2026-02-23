@@ -64,7 +64,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
     const contentY = useTransform(scrollY, [0, 150], [0, -20]);
 
     return (
-        <div className="relative w-full h-[80vh] md:h-[90vh] overflow-hidden bg-black">
+        <div className="relative w-full h-[100dvh] overflow-hidden bg-black">
             {/* Context Menu / 3-Dots */}
             <motion.div
                 className="absolute top-4 right-4 md:top-6 md:right-6 z-40"
@@ -101,7 +101,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
 
             {/* Backdrop Carousel */}
             <motion.div
-                className="absolute inset-0 z-0"
+                className="absolute inset-x-0 top-0 h-[80vh] md:h-[90vh] z-0"
                 style={{ opacity: bannerOpacity, scale: bannerScale, y: bannerY }}
             >
                 <div className="overflow-hidden h-full w-full" ref={emblaRef}>
@@ -118,31 +118,31 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                                     quality={90}
                                     sizes="(max-width: 768px) 350vw, 100vw"
                                 />
-                                {/* Dark Gradient Overlay */}
-                                <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black via-black/30 to-transparent" />
-                                <div className="absolute inset-y-0 left-0 w-full md:w-2/3 bg-gradient-to-r from-black/60 via-black/10 to-transparent" />
+                                {/* Dark Gradient Overlay (temporarily removed for testing) */}
+                                {/* <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black via-black/30 to-transparent" /> */}
+                                {/* <div className="absolute inset-y-0 left-0 w-full md:w-2/3 bg-gradient-to-r from-black/60 via-black/10 to-transparent" /> */}
                             </div>
                         ))}
                     </div>
                 </div>
-
-                {/* Carousel Dots */}
-                {backdropImages.length > 1 && (
-                    <div className="absolute bottom-2 md:bottom-4 left-0 right-0 md:left-auto flex justify-center md:justify-end md:right-4 px-4 z-20 gap-1.5 md:gap-2">
-                        {backdropImages.map((_, index) => (
-                            <button
-                                key={index}
-                                onClick={() => emblaApi && emblaApi.scrollTo(index)}
-                                className={cn(
-                                    "w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all duration-300",
-                                    index === selectedIndex ? "bg-white w-4 md:w-6" : "bg-neutral-500 hover:bg-neutral-400"
-                                )}
-                                aria-label={`Go to slide ${index + 1}`}
-                            />
-                        ))}
-                    </div>
-                )}
             </motion.div>
+
+            {/* Carousel Dots */}
+            {backdropImages.length > 1 && (
+                <div className="absolute bottom-2 md:bottom-4 left-0 right-0 md:left-auto flex justify-center md:justify-end md:right-4 px-4 z-20 gap-1.5 md:gap-2">
+                    {backdropImages.map((_, index) => (
+                        <button
+                            key={index}
+                            onClick={() => emblaApi && emblaApi.scrollTo(index)}
+                            className={cn(
+                                "w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all duration-300",
+                                index === selectedIndex ? "bg-white w-4 md:w-6" : "bg-neutral-500 hover:bg-neutral-400"
+                            )}
+                            aria-label={`Go to slide ${index + 1}`}
+                        />
+                    ))}
+                </div>
+            )}
 
             {/* Content Container */}
             <div className="absolute inset-0 z-10 container mx-auto px-4 flex flex-col justify-end pb-6 md:pb-8 pointer-events-none">
