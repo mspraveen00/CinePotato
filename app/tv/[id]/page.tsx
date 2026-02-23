@@ -18,7 +18,7 @@ export default async function TVPage({
     }
 
     return (
-        <main className="min-h-screen bg-neutral-900 text-white pb-20">
+        <main className="min-h-screen bg-black text-white pb-20">
             <HeroBanner titleDetail={titleDetail} />
 
             <div className="container mx-auto px-4 relative z-10 mt-12">

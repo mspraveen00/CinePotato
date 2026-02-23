@@ -64,7 +64,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
     const contentY = useTransform(scrollY, [0, 150], [0, -20]);
 
     return (
-        <div className="relative w-full h-[80vh] md:h-[90vh] overflow-hidden bg-neutral-900">
+        <div className="relative w-full h-[80vh] md:h-[90vh] overflow-hidden bg-black">
             {/* Context Menu / 3-Dots */}
             <motion.div
                 className="absolute top-4 right-4 md:top-6 md:right-6 z-40"
@@ -81,7 +81,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
             {/* Sticky Header (Hidden initially) */}
             <motion.div
                 style={{ opacity: headerOpacity, y: headerY }}
-                className="fixed top-0 left-0 right-0 z-50 bg-neutral-900/90 backdrop-blur-md border-b border-neutral-800 px-4 py-3 flex items-center justify-center pointer-events-none"
+                className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-neutral-800 px-4 py-3 flex items-center justify-center pointer-events-none"
             >
                 <div className="container mx-auto flex items-center justify-center gap-4">
                     {currentLogo ? (
@@ -118,8 +118,8 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                                     quality={90}
                                 />
                                 {/* Dark Gradient Overlay */}
-                                <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-neutral-900 via-neutral-900/30 to-transparent" />
-                                <div className="absolute inset-y-0 left-0 w-full md:w-2/3 bg-gradient-to-r from-neutral-900/60 via-neutral-900/10 to-transparent" />
+                                <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black via-black/30 to-transparent" />
+                                <div className="absolute inset-y-0 left-0 w-full md:w-2/3 bg-gradient-to-r from-black/60 via-black/10 to-transparent" />
                             </div>
                         ))}
                     </div>
