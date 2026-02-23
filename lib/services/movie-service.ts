@@ -46,14 +46,9 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
     try {
         console.log(`[Real Mode] Fetching Data for ID: ${id}`);
 
-        // 1. Fetch Movie Details and Images in Parallel
-        const moviePromise = fetchTMDB<TMDBMovie>(`/movie/${id}`);
-        const imagesPromise = fetchTMDB<TMDBImagesResponse>(`/movie/${id}/images`).catch(error => {
-            console.error("Failed to fetch TMDB images:", error);
-            return { backdrops: [], logos: [], posters: [] } as TMDBImagesResponse;
-        });
-
-        const [movie, images] = await Promise.all([moviePromise, imagesPromise]);
+        // 1. Fetch Movie Details with Images via append_to_response
+        const movie = await fetchTMDB<TMDBMovie & { images: TMDBImagesResponse }>(`/movie/${id}?append_to_response=images`);
+        const images = movie.images || { backdrops: [], logos: [], posters: [] };
 
         // 2. Logo Logic
         const logos: string[] = [];

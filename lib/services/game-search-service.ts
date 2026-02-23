@@ -23,26 +23,8 @@ export async function searchGames(query: string): Promise<SearchResult[]> {
             limit 20;
         `;
 
-        const res = await fetch('/api/igdb/games', {
-            method: 'POST',
-            body: body,
-        });
-
-        if (!res.ok) {
-            let errorMessage = `IGDB Search Error: ${res.status}`;
-            try {
-                const errorData = await res.json();
-                if (errorData.error) {
-                    errorMessage = errorData.error;
-                }
-            } catch (e) {
-                // Ignore
-            }
-            console.error(errorMessage);
-            throw new Error(errorMessage);
-        }
-
-        const data: IGDBGame[] = await res.json();
+        const { fetchIGDB } = await import('@/lib/api/igdb');
+        const data: IGDBGame[] = await fetchIGDB('games', body);
 
         return data.map(game => {
             const imageId = game.cover?.image_id;

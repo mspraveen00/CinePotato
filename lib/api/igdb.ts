@@ -62,10 +62,8 @@ export async function fetchIGDB<T>(endpoint: string, query: string): Promise<T> 
             'Accept': 'application/json',
         },
         body: query,
-        // IGDB queries update frequently enough, but for search/details we can cache briefly
-        // However, since this is a server-side call often behind another next api route,
-        // we might rely on the next api route cache.
-        cache: 'no-store',
+        // Use Next.js caching with 1-hour revalidation to match TMDB cache behavior
+        next: { revalidate: 3600 },
     });
 
     if (!res.ok) {

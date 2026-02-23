@@ -43,13 +43,8 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
     try {
         console.log(`[Real Mode] Fetching TV Data for ID: ${id}`);
 
-        const tvPromise = fetchTMDB<TMDBTVShow>(`/tv/${id}`);
-        const imagesPromise = fetchTMDB<TMDBImagesResponse>(`/tv/${id}/images`).catch(error => {
-            console.error("Failed to fetch TMDB images:", error);
-            return { backdrops: [], logos: [], posters: [] } as TMDBImagesResponse;
-        });
-
-        const [tv, images] = await Promise.all([tvPromise, imagesPromise]);
+        const tv = await fetchTMDB<TMDBTVShow & { images: TMDBImagesResponse }>(`/tv/${id}?append_to_response=images`);
+        const images = tv.images || { backdrops: [], logos: [], posters: [] };
 
         // Logo Logic
         const logos: string[] = [];
