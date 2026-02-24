@@ -1,9 +1,8 @@
 import { SearchResult, MediaType } from '@/types/search';
 import { Film, Tv, Gamepad2, User, FileText, LayoutGrid, Star, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import Link from 'next/link';
-// Assuming generic image component or next/image usage
+import { getResizedImage } from '@/lib/image-utils';
 
 // Map media types to icons and labels
 const MEDIA_ICONS: Record<MediaType, any> = {
@@ -65,12 +64,12 @@ export function SearchResults({ results, isLoading }: SearchResultsProps) {
                             {/* Placeholder for Poster/Image - In a real app we'd have images */}
                             <div className="w-16 h-24 bg-neutral-800 rounded-lg flex-shrink-0 flex items-center justify-center text-neutral-600 relative overflow-hidden">
                                 {result.posterPath ? (
-                                    <Image
-                                        src={result.posterPath}
+                                    <img
+                                        src={getResizedImage(result.posterPath, "thumbnail")}
                                         alt={result.title}
-                                        fill
-                                        className="object-cover"
-                                        sizes="64px"
+                                        className="absolute inset-0 w-full h-full object-cover"
+                                        loading="lazy"
+                                        decoding="async"
                                     />
                                 ) : (
                                     <Icon className="w-8 h-8 opacity-20" />

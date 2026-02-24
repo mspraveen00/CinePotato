@@ -1,7 +1,7 @@
 import React from 'react';
-import Image from 'next/image';
 import { Star } from 'lucide-react';
 import { ListItem } from '@/lib/store/user-lists-store';
+import { getResizedImage } from '@/lib/image-utils';
 
 interface PosterCardProps {
     item: ListItem;
@@ -13,11 +13,12 @@ export function PosterCard({ item, actions }: PosterCardProps) {
         <div className="group relative">
             <div className="aspect-[2/3] bg-neutral-800 rounded-lg overflow-hidden relative">
                 {item.poster_path ? (
-                    <Image
-                        src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
+                    <img
+                        src={getResizedImage(`https://image.tmdb.org/t/p/original${item.poster_path}`, "poster")}
                         alt={item.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        decoding="async"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center bg-neutral-900 text-neutral-500 text-xs text-center p-2">

@@ -1,8 +1,8 @@
 import React from 'react';
-import Image from 'next/image';
 import { MoreVertical, Star, Film, Monitor, Tv, Gamepad } from 'lucide-react';
 import { ListItem } from '@/lib/store/user-lists-store';
 import { IMDbIcon, TMDBLogo, MetacriticIcon, RottenTomatoesIcon, PopcornIcon } from './RatingIcons';
+import { getResizedImage } from '@/lib/image-utils';
 
 interface WideCardProps {
     item: ListItem;
@@ -34,11 +34,12 @@ export function WideCard({ item, actions, variant = 'standard' }: WideCardProps)
                 {/* Left: Poster */}
                 <div className={`relative w-[70px] ${isCompact ? 'md:w-[90px]' : 'md:w-[120px]'} shrink-0 border-r border-neutral-800 z-10`}>
                     {item.poster_path ? (
-                        <Image
-                            src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
+                        <img
+                            src={getResizedImage(`https://image.tmdb.org/t/p/original${item.poster_path}`, "thumbnail")}
                             alt={item.title}
-                            fill
-                            className="object-cover"
+                            className="absolute inset-0 w-full h-full object-cover"
+                            loading="lazy"
+                            decoding="async"
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center bg-neutral-800 text-neutral-500 text-xs">
@@ -52,11 +53,12 @@ export function WideCard({ item, actions, variant = 'standard' }: WideCardProps)
                     {/* Backdrop Background */}
                     <div className="absolute inset-0 z-0">
                         {item.backdrop_path && (
-                            <Image
-                                src={`https://image.tmdb.org/t/p/w1280${item.backdrop_path}`}
+                            <img
+                                src={getResizedImage(`https://image.tmdb.org/t/p/original${item.backdrop_path}`, "hero_mobile")}
                                 alt=""
-                                fill
-                                className="object-cover opacity-40 group-hover:opacity-50 transition-opacity"
+                                className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-50 transition-opacity"
+                                loading="lazy"
+                                decoding="async"
                             />
                         )}
                         <div className="absolute inset-0 bg-gradient-to-r from-neutral-900 via-neutral-900/90 to-neutral-900/30" />

@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 import { Star, MoreVertical } from 'lucide-react';
 import { HeroBannerProps } from '@/types/title';
 import { cn } from '@/lib/utils';
+import { getResizedImage, generateSrcSet } from '@/lib/image-utils';
 
 export default function HeroBanner({ titleDetail }: HeroBannerProps) {
     const {
@@ -90,7 +90,13 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                             onDoubleClick={handleLogoDoubleClick}
                             title={logos && logos.length > 1 ? "Double click to change logo" : undefined}
                         >
-                            <Image src={currentLogo} alt={title} fill className="object-contain object-center" />
+                            <img
+                                src={getResizedImage(currentLogo, "logo")}
+                                alt={title}
+                                className="w-full h-full object-contain object-center"
+                                loading="lazy"
+                                decoding="async"
+                            />
                         </div>
                     ) : (
                         <h2 className="text-lg font-bold text-white truncate">{title}</h2>
@@ -108,15 +114,19 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                     <div className="flex h-full w-full touch-pan-y">
                         {backdropImages.map((src, index) => (
                             <div key={index} className="relative flex-[0_0_100%] h-full w-full min-w-0 mr-[1px]">
-                                <Image
-                                    src={src}
+                                <img
+                                    src={getResizedImage(src, "hero")}
+                                    srcSet={generateSrcSet(src, [
+                                        { preset: "hero_mobile", width: 780 },
+                                        { preset: "hero", width: 1280 },
+                                        { preset: "fullscreen", width: 1920 }
+                                    ])}
+                                    sizes="(max-width: 768px) 100vw, 100vw"
                                     alt={`Backdrop ${index + 1}`}
-                                    fill
-                                    className="object-cover"
-                                    priority={index === 0}
+                                    className="absolute inset-0 w-full h-full object-cover"
                                     loading={index === 0 ? "eager" : "lazy"}
-                                    quality={90}
-                                    sizes="(max-width: 768px) 350vw, 100vw"
+                                    decoding={index === 0 ? "auto" : "async"}
+                                    fetchPriority={index === 0 ? "high" : "auto"}
                                 />
                                 {/* Feathered bottom edge to seamlessly blend into the black background */}
                                 <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black to-transparent" />
@@ -152,12 +162,12 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                         className="w-32 sm:w-40 md:w-64 aspect-[2/3] relative rounded-lg shadow-2xl shadow-black/50 overflow-hidden border border-neutral-700/50 flex-shrink-0"
                         style={{ scale: posterScale, y: posterY, opacity: posterOpacity }}
                     >
-                        <Image
-                            src={posterPath}
+                        <img
+                            src={getResizedImage(posterPath, "poster")}
                             alt={`${title} Poster`}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 768px) 100vw, 300px"
+                            className="absolute inset-0 w-full h-full object-cover"
+                            loading="lazy"
+                            decoding="async"
                         />
                     </motion.div>
 
@@ -174,12 +184,12 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                                     onDoubleClick={handleLogoDoubleClick}
                                     title={logos && logos.length > 1 ? "Double click to change logo" : undefined}
                                 >
-                                    <Image
-                                        src={currentLogo}
+                                    <img
+                                        src={getResizedImage(currentLogo, "logo")}
                                         alt={title}
-                                        fill
-                                        className="object-contain object-left pointer-events-none"
-                                        priority
+                                        className="absolute inset-0 w-full h-full object-contain object-left pointer-events-none"
+                                        loading="eager"
+                                        fetchPriority="high"
                                     />
                                 </div>
                             ) : (

@@ -2,10 +2,10 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { ArrowRight, ChevronRight } from 'lucide-react';
 import { UserList } from '@/lib/store/user-lists-store';
 import { cn } from '@/lib/utils';
+import { getResizedImage } from '@/lib/image-utils';
 
 interface SystemListPreviewProps {
     list: UserList;
@@ -41,11 +41,12 @@ export function SystemListPreview({ list }: SystemListPreviewProps) {
                             >
                                 <div className="aspect-[2/3] bg-neutral-800 rounded-lg overflow-hidden relative border border-neutral-800 shadow-sm transition-transform duration-300 group-hover:scale-105 group-hover:shadow-md">
                                     {item.poster_path ? (
-                                        <Image
-                                            src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
+                                        <img
+                                            src={getResizedImage(`https://image.tmdb.org/t/p/original${item.poster_path}`, "thumbnail")}
                                             alt={item.title}
-                                            fill
-                                            className="object-cover"
+                                            className="absolute inset-0 w-full h-full object-cover"
+                                            loading="lazy"
+                                            decoding="async"
                                         />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center bg-neutral-900 text-neutral-500 text-xs text-center p-2">
