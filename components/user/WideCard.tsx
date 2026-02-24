@@ -54,7 +54,7 @@ export function WideCard({ item, actions, variant = 'standard' }: WideCardProps)
                     <div className="absolute inset-0 z-0">
                         {item.backdrop_path && (
                             <img
-                                src={getResizedImage(`https://image.tmdb.org/t/p/original${item.backdrop_path}`, "hero_mobile")}
+                                src={getResizedImage(`https://image.tmdb.org/t/p/original${item.backdrop_path}`, "hero")}
                                 alt=""
                                 className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-50 transition-opacity"
                                 loading="lazy"

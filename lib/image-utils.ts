@@ -5,14 +5,13 @@
  * preventing Vercel free-tier image optimization quota exhaustion.
  */
 
-export type ImagePreset = "thumbnail" | "poster" | "hero_mobile" | "hero" | "fullscreen" | "logo";
+export type ImagePreset = "thumbnail" | "poster" | "hero" | "fullscreen" | "logo";
 
 type CdnProvider = "tmdb" | "igdb" | "unknown";
 
 const TMDB_SIZES: Record<ImagePreset, string> = {
     thumbnail: "w342",
     poster: "w500",
-    hero_mobile: "w780",
     hero: "w1280",
     fullscreen: "original",
     logo: "original",
@@ -21,7 +20,6 @@ const TMDB_SIZES: Record<ImagePreset, string> = {
 const IGDB_SIZES: Record<ImagePreset, string> = {
     thumbnail: "t_thumb",
     poster: "t_cover_big",
-    hero_mobile: "t_720p",
     hero: "t_1080p",
     fullscreen: "t_original",
     logo: "t_1080p",

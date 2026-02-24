@@ -117,7 +117,6 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                                 <img
                                     src={getResizedImage(src, "hero")}
                                     srcSet={generateSrcSet(src, [
-                                        { preset: "hero_mobile", width: 780 },
                                         { preset: "hero", width: 1280 },
                                         { preset: "fullscreen", width: 1920 }
                                     ])}
