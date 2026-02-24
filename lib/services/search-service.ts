@@ -98,23 +98,30 @@ export async function searchTitles(query: string, type?: MediaType): Promise<Sea
             return await searchGames(query);
         }
 
-        // Call the server-side proxy for TMDB multi-search (movies, tv, person)
-        // If specific type is requested (movie/tv/person), we could use specific endpoints, 
-        // but multi-search + filter is often easier unless pagination is strict.
         // Call the TMDB API directly using the server-side utility
         const { fetchTMDB } = await import('@/lib/api/tmdb');
-        const data = await fetchTMDB<TMDBSearchResponse>(`/search/multi?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`);
+        
+        // Determine the correct endpoint based on requested type
+        let endpoint = '/search/multi';
+        if (type === 'movie') endpoint = '/search/movie';
+        else if (type === 'tv') endpoint = '/search/tv';
+        else if (type === 'person') endpoint = '/search/person';
+
+        const data = await fetchTMDB<TMDBSearchResponse>(`${endpoint}?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`);
 
         return data.results
             .filter(item => {
-                const mediaType = item.media_type as MediaType;
-                if (type && type !== mediaType) return false; // Basic filtering if type is specified
+                // If a specific endpoint was used, all returned items are valid.
+                // If using multi-search, filter out unwanted media types like collections or companies.
+                if (endpoint !== '/search/multi') return true;
+                
                 return item.media_type === 'movie' || item.media_type === 'tv' || item.media_type === 'person';
             })
             .map(item => {
                 const title = item.title || item.name || "Unknown Title";
                 const date = item.release_date || item.first_air_date;
-                const mediaType = (item.media_type as MediaType) || 'movie';
+                // Inherit mediaType from type param if the specific endpoint was used (since TMDB omits it)
+                const mediaType = (item.media_type as MediaType) || type || 'movie';
 
                 // Use profile_path for person, poster_path for others
                 const imagePath = mediaType === 'person' ? item.profile_path : item.poster_path;
