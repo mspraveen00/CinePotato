@@ -108,27 +108,32 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
             {/* Backdrop Carousel */}
             <motion.div
                 className="absolute inset-x-0 top-0 h-[80vh] md:h-[90vh] z-0"
-                style={{ opacity: bannerOpacity, scale: bannerScale, y: bannerY }}
+                style={{ opacity: bannerOpacity, y: bannerY }}
             >
                 <div className="overflow-hidden h-full w-full" ref={emblaRef}>
                     <div className="flex h-full w-full touch-pan-y">
                         {backdropImages.map((src, index) => (
-                            <div key={index} className="relative flex-[0_0_100%] h-full w-full min-w-0 mr-[1px]">
-                                <img
-                                    src={getResizedImage(src, "hero")}
-                                    srcSet={generateSrcSet(src, [
-                                        { preset: "hero", width: 1280 },
-                                        { preset: "fullscreen", width: 1920 }
-                                    ])}
-                                    sizes="(max-width: 768px) 100vw, 100vw"
-                                    alt={`Backdrop ${index + 1}`}
-                                    className="absolute inset-0 w-full h-full object-cover"
-                                    loading={index === 0 ? "eager" : "lazy"}
-                                    decoding={index === 0 ? "auto" : "async"}
-                                    fetchPriority={index === 0 ? "high" : "auto"}
-                                />
-                                {/* Feathered bottom edge to seamlessly blend into the black background */}
-                                <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black to-transparent" />
+                            <div key={index} className="relative flex-[0_0_100%] h-full w-full min-w-0 bg-black overflow-hidden">
+                                <motion.div
+                                    className="absolute inset-0 origin-center"
+                                    style={{ scale: bannerScale }}
+                                >
+                                    <img
+                                        src={getResizedImage(src, "hero")}
+                                        srcSet={generateSrcSet(src, [
+                                            { preset: "hero", width: 1280 },
+                                            { preset: "fullscreen", width: 1920 }
+                                        ])}
+                                        sizes="(max-width: 768px) 100vw, 100vw"
+                                        alt={`Backdrop ${index + 1}`}
+                                        className="absolute inset-0 w-full h-full object-cover"
+                                        loading={index === 0 ? "eager" : "lazy"}
+                                        decoding={index === 0 ? "auto" : "async"}
+                                        fetchPriority={index === 0 ? "high" : "auto"}
+                                    />
+                                    {/* Feathered bottom edge to seamlessly blend into the black background */}
+                                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black to-transparent" />
+                                </motion.div>
                             </div>
                         ))}
                     </div>
