@@ -113,7 +113,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                 <div className="overflow-hidden h-full w-full" ref={emblaRef}>
                     <div className="flex h-full w-full touch-pan-y">
                         {backdropImages.map((src, index) => (
-                            <div key={index} className="relative flex-[0_0_100%] h-full w-full min-w-0 bg-black overflow-hidden">
+                            <div key={index} className="relative flex-[0_0_100%] h-full w-full min-w-0 bg-black overflow-hidden mr-4">
                                 <motion.div
                                     className="absolute inset-0 origin-center"
                                     style={{ scale: bannerScale }}
