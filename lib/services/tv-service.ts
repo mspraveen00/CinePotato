@@ -18,6 +18,15 @@ interface TMDBTVShow {
         name: string;
         profile_path: string | null;
     }[];
+    seasons: {
+        id: number;
+        name: string;
+        season_number: number;
+        episode_count: number;
+        air_date: string | null;
+        poster_path: string | null;
+        overview: string;
+    }[];
 }
 
 interface TMDBImage {
@@ -69,7 +78,7 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
     try {
         console.log(`[Real Mode] Fetching TV Data for ID: ${id}`);
 
-        const tv = await fetchTMDB<TMDBTVShow & { images: TMDBImagesResponse, credits: TMDBCreditsResponse }>(`/tv/${id}?append_to_response=images,credits`);
+        const tv = await fetchTMDB<TMDBTVShow & { images: TMDBImagesResponse, credits: TMDBCreditsResponse, episode_groups: { results: TMDBEpisodeGroupList[] } }>(`/tv/${id}?append_to_response=images,credits,episode_groups`);
         const images = tv.images || { backdrops: [], logos: [], posters: [] };
 
         // Logo Logic
@@ -190,6 +199,29 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
                 profileImageUrl: c.profileImageUrl,
             }));
 
+        const mappedSeasons = (tv.seasons || [])
+            .map(s => ({
+                id: s.id,
+                name: s.name,
+                seasonNumber: s.season_number,
+                episodeCount: s.episode_count,
+                airDate: s.air_date,
+                posterPath: s.poster_path ? `https://image.tmdb.org/t/p/w500${s.poster_path}` : null,
+                overview: s.overview,
+            }))
+            .sort((a, b) => a.seasonNumber - b.seasonNumber);
+
+        const mappedEpisodeGroups = (tv.episode_groups?.results || [])
+            .map(eg => ({
+                id: eg.id,
+                name: eg.name,
+                description: eg.description,
+                episodeCount: eg.episode_count,
+                groupCount: eg.group_count,
+                network: eg.network?.name || null,
+                type: eg.type,
+            }));
+
         return {
             id: String(tv.id),
             title: tv.name, // Map name to title
@@ -205,6 +237,8 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
             logos: logos.length > 0 ? logos : undefined,
             cast: castMembers,
             crew: crewMembers,
+            seasons: mappedSeasons.length > 0 ? mappedSeasons : undefined,
+            episodeGroups: mappedEpisodeGroups.length > 0 ? mappedEpisodeGroups : undefined,
         };
 
     } catch (error) {
@@ -259,5 +293,161 @@ export async function getExploreTVs(shelfId: string, limit: number = 10): Promis
     } catch (error) {
         console.error(`Failed to fetch explore TV shows for shelf ${shelfId}:`, error);
         return [];
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Season Detail Fetching
+// -----------------------------------------------------------------------------
+
+import { Episode } from '@/types/title';
+
+interface TMDBEpisode {
+    id: number;
+    name: string;
+    overview: string;
+    vote_average: number;
+    air_date: string | null;
+    episode_number: number;
+    season_number: number;
+    runtime: number | null;
+    still_path: string | null;
+}
+
+interface TMDBSeasonResponse {
+    _id: string;
+    id: number;
+    name: string;
+    overview: string;
+    poster_path: string | null;
+    season_number: number;
+    episodes: TMDBEpisode[];
+}
+
+export async function getSeasonDetail(tvId: string, seasonNumber: number): Promise<Episode[]> {
+    const useMock = process.env.USE_MOCK === 'true';
+
+    if (useMock) {
+        // Return mostly empty array for mock mode to prevent layout breaks
+        console.log(`[Mock Mode] Fetching season details for TV ID: ${tvId}, Season: ${seasonNumber}`);
+        await new Promise(resolve => setTimeout(resolve, 300));
+        return [];
+    }
+
+    try {
+        console.log(`[Real Mode] Fetching Season Data for TV ID: ${tvId}, Season: ${seasonNumber}`);
+        const data = await fetchTMDB<TMDBSeasonResponse>(`/tv/${tvId}/season/${seasonNumber}`);
+
+        return (data.episodes || []).map(ep => ({
+            id: ep.id,
+            name: ep.name,
+            episodeNumber: ep.episode_number,
+            seasonNumber: ep.season_number,
+            overview: ep.overview,
+            airDate: ep.air_date,
+            runtime: ep.runtime,
+            stillPath: ep.still_path ? `https://image.tmdb.org/t/p/w500${ep.still_path}` : null,
+            rating: parseFloat(ep.vote_average.toFixed(1))
+        }));
+    } catch (error) {
+        console.error(`Failed to fetch season details for TV ID: ${tvId}, Season: ${seasonNumber}:`, error);
+        return [];
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Episode Group Detail Fetching
+// -----------------------------------------------------------------------------
+
+interface TMDBEpisodeGroupList {
+    id: string;
+    name: string;
+    description: string;
+    episode_count: number;
+    group_count: number;
+    network: {
+        id: number;
+        name: string;
+    } | null;
+    type: number;
+}
+
+export interface EpisodeGroupDetail {
+    id: string;
+    name: string;
+    description: string;
+    episodeCount: number;
+    groupCount: number;
+    network: string | null;
+    type: number;
+    groups: {
+        id: string;
+        name: string;
+        order: number;
+        episodes: Episode[];
+    }[];
+}
+
+interface TMDBEpisodeGroupDetail {
+    id: string;
+    name: string;
+    description: string;
+    episode_count: number;
+    group_count: number;
+    network: {
+        id: number;
+        name: string;
+    } | null;
+    type: number;
+    groups: {
+        id: string;
+        name: string;
+        order: number;
+        episodes: TMDBEpisode[];
+        locked: boolean;
+    }[];
+}
+
+export async function getEpisodeGroupDetail(groupId: string): Promise<EpisodeGroupDetail | null> {
+    const useMock = process.env.USE_MOCK === 'true';
+
+    if (useMock) {
+        console.log(`[Mock Mode] Fetching episode group details for ID: ${groupId}`);
+        await new Promise(resolve => setTimeout(resolve, 300));
+        return null;
+    }
+
+    try {
+        console.log(`[Real Mode] Fetching Episode Group Data for ID: ${groupId}`);
+        const data = await fetchTMDB<TMDBEpisodeGroupDetail>(`/tv/episode_group/${groupId}`);
+
+        return {
+            id: data.id,
+            name: data.name,
+            description: data.description,
+            episodeCount: data.episode_count,
+            groupCount: data.group_count,
+            network: data.network?.name || null,
+            type: data.type,
+            groups: (data.groups || []).map(g => ({
+                id: g.id,
+                name: g.name,
+                order: g.order,
+                episodes: (g.episodes || []).map(ep => ({
+                    id: ep.id,
+                    name: ep.name,
+                    episodeNumber: ep.episode_number,
+                    seasonNumber: ep.season_number,
+                    overview: ep.overview,
+                    airDate: ep.air_date,
+                    runtime: ep.runtime,
+                    stillPath: ep.still_path ? `https://image.tmdb.org/t/p/w500${ep.still_path}` : null,
+                    rating: parseFloat((ep.vote_average || 0).toFixed(1))
+                }))
+            }))
+        };
+    } catch (error) {
+        console.error(`Failed to fetch episode group details for ID: ${groupId}:`, error);
+        return null;
     }
 }

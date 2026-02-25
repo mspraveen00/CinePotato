@@ -3,6 +3,7 @@ import { getTVDetail } from '@/lib/services/tv-service';
 import { notFound } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import SeasonsSection from '@/components/title/SeasonsSection';
 
 export const revalidate = 3600; // Cache for 1 hour
 
@@ -37,13 +38,14 @@ export default async function TVPage({
                             </p>
                         </section>
 
-                        {/* Seasons Placeholder */}
-                        <section>
-                            <h3 className="text-xl font-bold mb-4">Seasons</h3>
-                            <div className="p-4 bg-neutral-800 rounded border border-neutral-700">
-                                <p className="text-sm text-neutral-400">Total Seasons: (Data not available in basic details)</p>
-                            </div>
-                        </section>
+                        {/* Seasons */}
+                        {(titleDetail.seasons && titleDetail.seasons.length > 0) || (titleDetail.episodeGroups && titleDetail.episodeGroups.length > 0) ? (
+                            <SeasonsSection
+                                titleId={titleDetail.id}
+                                seasons={titleDetail.seasons}
+                                episodeGroups={titleDetail.episodeGroups}
+                            />
+                        ) : null}
 
                         {/* Top Cast */}
                         {titleDetail.cast && titleDetail.cast.length > 0 && (

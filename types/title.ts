@@ -16,6 +16,38 @@ export interface CrewMember {
     profileImageUrl: string | null;
 }
 
+export interface Season {
+    id: number;
+    name: string;
+    seasonNumber: number;
+    episodeCount: number;
+    airDate: string | null;
+    posterPath: string | null;
+    overview: string;
+}
+
+export interface Episode {
+    id: number;
+    name: string;
+    episodeNumber: number;
+    seasonNumber: number;
+    overview: string;
+    airDate: string | null;
+    runtime: number | null;
+    stillPath: string | null;
+    rating: number;
+}
+
+export interface EpisodeGroupList {
+    id: string;
+    name: string;
+    description: string;
+    episodeCount: number;
+    groupCount: number;
+    network: string | null;
+    type: number;
+}
+
 export interface TitleDetail {
     id: string;
     title: string;
@@ -29,4 +61,6 @@ export interface TitleDetail {
     logos?: string[];
     cast?: CastMember[];
     crew?: CrewMember[];
+    seasons?: Season[];
+    episodeGroups?: EpisodeGroupList[];
 }
