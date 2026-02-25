@@ -7,7 +7,6 @@ import { Star, MoreVertical } from 'lucide-react';
 import { HeroBannerProps } from '@/types/title';
 import { cn } from '@/lib/utils';
 import { getResizedImage } from '@/lib/image-utils';
-import { useHighResScreen } from '@/hooks/useHighResScreen';
 
 export default function HeroBanner({ titleDetail }: HeroBannerProps) {
     const {
@@ -21,8 +20,6 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
         rating,
         logos,
     } = titleDetail;
-
-    const isHighRes = useHighResScreen();
 
     const [logoIndex, setLogoIndex] = useState(0);
     const hasLogos = logos && logos.length > 0;
@@ -122,7 +119,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                                     style={{ scale: bannerScale }}
                                 >
                                     <img
-                                        src={getResizedImage(src, isHighRes ? "fullscreen" : "hero")}
+                                        src={getResizedImage(src, "fullscreen")}
                                         alt={`Backdrop ${index + 1}`}
                                         className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
                                         loading={index === 0 ? "eager" : "lazy"}
