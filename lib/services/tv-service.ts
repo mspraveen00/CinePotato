@@ -1,5 +1,5 @@
 import { fetchTMDB } from '@/lib/api/tmdb';
-import { TitleDetail, CastMember } from '@/types/title';
+import { TitleDetail, CastMember, CrewMember } from '@/types/title';
 import { generateMockTVDetail, generateMockItems } from '@/lib/mock-data';
 
 interface TMDBTVShow {
@@ -13,6 +13,11 @@ interface TMDBTVShow {
     poster_path: string;
     backdrop_path: string;
     original_language: string;
+    created_by: {
+        id: number;
+        name: string;
+        profile_path: string | null;
+    }[];
 }
 
 interface TMDBImage {
@@ -39,8 +44,17 @@ interface TMDBCastMember {
     order: number;
 }
 
+interface TMDBCrewMember {
+    id: number;
+    name: string;
+    job: string;
+    department: string;
+    profile_path: string | null;
+}
+
 interface TMDBCreditsResponse {
     cast: TMDBCastMember[];
+    crew: TMDBCrewMember[];
 }
 
 export async function getTVDetail(id: string): Promise<TitleDetail | null> {
@@ -124,6 +138,58 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
                 profileImageUrl: actor.profile_path ? `https://image.tmdb.org/t/p/w500${actor.profile_path}` : null,
             }));
 
+        // 5. Crew Logic
+        // For TV shows, 'created_by' is often the most important "crew" member.
+        const crewMap = new Map<number, CrewMember & { jobs: Set<string> }>();
+
+        // Add Creators first
+        if (tv.created_by) {
+            tv.created_by.forEach(creator => {
+                crewMap.set(creator.id, {
+                    id: creator.id,
+                    name: creator.name,
+                    job: 'Creator', // Temporary, will be joined later
+                    jobs: new Set(['Creator']),
+                    profileImageUrl: creator.profile_path ? `https://image.tmdb.org/t/p/w500${creator.profile_path}` : null,
+                });
+            });
+        }
+
+        // Add other important crew
+        const topJobs = ['Executive Producer', 'Series Director', 'Director', 'Writer', 'Director of Photography', 'Original Music Composer'];
+
+        const filteredCrew = (tv.credits?.crew || []).filter(c => topJobs.includes(c.job));
+
+        filteredCrew.forEach(c => {
+            if (!crewMap.has(c.id)) {
+                crewMap.set(c.id, {
+                    id: c.id,
+                    name: c.name,
+                    job: c.job, // Temp
+                    jobs: new Set([c.job]),
+                    profileImageUrl: c.profile_path ? `https://image.tmdb.org/t/p/w500${c.profile_path}` : null,
+                });
+            } else {
+                crewMap.get(c.id)!.jobs.add(c.job);
+            }
+        });
+
+        const crewMembers: CrewMember[] = Array.from(crewMap.values())
+            .sort((a, b) => {
+                // Prioritize Creators & Executive Producers
+                const aIdx = a.jobs.has('Creator') ? 2 : a.jobs.has('Executive Producer') ? 1 : 0;
+                const bIdx = b.jobs.has('Creator') ? 2 : b.jobs.has('Executive Producer') ? 1 : 0;
+                if (aIdx !== bIdx) return bIdx - aIdx;
+                return 0;
+            })
+            .slice(0, 10)
+            .map(c => ({
+                id: c.id,
+                name: c.name,
+                job: Array.from(c.jobs).join(', '),
+                profileImageUrl: c.profileImageUrl,
+            }));
+
         return {
             id: String(tv.id),
             title: tv.name, // Map name to title
@@ -138,6 +204,7 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
             rating: parseFloat(tv.vote_average.toFixed(1)),
             logos: logos.length > 0 ? logos : undefined,
             cast: castMembers,
+            crew: crewMembers,
         };
 
     } catch (error) {

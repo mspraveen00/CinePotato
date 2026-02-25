@@ -9,6 +9,13 @@ export interface CastMember {
     profileImageUrl: string | null;
 }
 
+export interface CrewMember {
+    id: number;
+    name: string;
+    job: string;
+    profileImageUrl: string | null;
+}
+
 export interface TitleDetail {
     id: string;
     title: string;
@@ -21,4 +28,5 @@ export interface TitleDetail {
     rating: number; // 0-10
     logos?: string[];
     cast?: CastMember[];
+    crew?: CrewMember[];
 }

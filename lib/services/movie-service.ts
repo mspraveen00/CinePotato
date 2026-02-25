@@ -1,7 +1,7 @@
 
 // I need to import the RAW fetcher from lib/api/tmdb
 import { fetchTMDB } from '@/lib/api/tmdb';
-import { TitleDetail, CastMember } from '@/types/title';
+import { TitleDetail, CastMember, CrewMember } from '@/types/title';
 import { generateMockDetail, generateMockItems } from '@/lib/mock-data';
 
 interface TMDBMovie {
@@ -41,8 +41,17 @@ interface TMDBCastMember {
     order: number;
 }
 
+interface TMDBCrewMember {
+    id: number;
+    name: string;
+    job: string;
+    department: string;
+    profile_path: string | null;
+}
+
 interface TMDBCreditsResponse {
     cast: TMDBCastMember[];
+    crew: TMDBCrewMember[];
 }
 
 export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
@@ -126,7 +135,40 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
                 profileImageUrl: actor.profile_path ? `https://image.tmdb.org/t/p/w500${actor.profile_path}` : null,
             }));
 
-        // 5. Transform to Domain Model
+        // 5. Crew Logic
+        const topJobs = ['Director', 'Screenplay', 'Writer', 'Story', 'Director of Photography', 'Original Music Composer', 'Editor', 'Producer'];
+
+        const filteredCrew = (movie.credits?.crew || []).filter(c => topJobs.includes(c.job));
+
+        // Deduplicate by ID and combine jobs
+        const crewMap = new Map<number, TMDBCrewMember & { jobs: Set<string> }>();
+        filteredCrew.forEach(c => {
+            if (!crewMap.has(c.id)) {
+                crewMap.set(c.id, { ...c, jobs: new Set([c.job]) });
+            } else {
+                crewMap.get(c.id)!.jobs.add(c.job);
+            }
+        });
+
+        // Convert map back to array, sort by job priority (roughly), and take top 10
+        const crewMembers: CrewMember[] = Array.from(crewMap.values())
+            .sort((a, b) => {
+                // Prioritize Directors
+                const aIsDir = a.jobs.has('Director') ? 1 : 0;
+                const bIsDir = b.jobs.has('Director') ? 1 : 0;
+                if (aIsDir !== bIsDir) return bIsDir - aIsDir;
+                // Otherwise fallback to whatever came first in TMDB's array
+                return 0;
+            })
+            .slice(0, 10)
+            .map(c => ({
+                id: c.id,
+                name: c.name,
+                job: Array.from(c.jobs).join(', '),
+                profileImageUrl: c.profile_path ? `https://image.tmdb.org/t/p/w500${c.profile_path}` : null,
+            }));
+
+        // 6. Transform to Domain Model
         return {
             id: String(movie.id),
             title: movie.title,
@@ -143,6 +185,7 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
             rating: parseFloat(movie.vote_average.toFixed(1)),
             logos: logos.length > 0 ? logos : undefined,
             cast: castMembers,
+            crew: crewMembers,
         };
 
     } catch (error) {
