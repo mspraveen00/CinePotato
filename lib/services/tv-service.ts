@@ -1,5 +1,5 @@
 import { fetchTMDB } from '@/lib/api/tmdb';
-import { TitleDetail } from '@/types/title';
+import { TitleDetail, CastMember } from '@/types/title';
 import { generateMockTVDetail, generateMockItems } from '@/lib/mock-data';
 
 interface TMDBTVShow {
@@ -31,6 +31,18 @@ interface TMDBImagesResponse {
     posters: TMDBImage[];
 }
 
+interface TMDBCastMember {
+    id: number;
+    name: string;
+    character: string;
+    profile_path: string | null;
+    order: number;
+}
+
+interface TMDBCreditsResponse {
+    cast: TMDBCastMember[];
+}
+
 export async function getTVDetail(id: string): Promise<TitleDetail | null> {
     const useMock = process.env.USE_MOCK === 'true';
 
@@ -43,7 +55,7 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
     try {
         console.log(`[Real Mode] Fetching TV Data for ID: ${id}`);
 
-        const tv = await fetchTMDB<TMDBTVShow & { images: TMDBImagesResponse }>(`/tv/${id}?append_to_response=images`);
+        const tv = await fetchTMDB<TMDBTVShow & { images: TMDBImagesResponse, credits: TMDBCreditsResponse }>(`/tv/${id}?append_to_response=images,credits`);
         const images = tv.images || { backdrops: [], logos: [], posters: [] };
 
         // Logo Logic
@@ -101,6 +113,17 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
             ? `${tv.episode_run_time[0]}m`
             : "N/A";
 
+        // Cast Logic
+        const castMembers: CastMember[] = (tv.credits?.cast || [])
+            .sort((a, b) => a.order - b.order)
+            .slice(0, 10)
+            .map(actor => ({
+                id: actor.id,
+                name: actor.name,
+                character: actor.character,
+                profileImageUrl: actor.profile_path ? `https://image.tmdb.org/t/p/w500${actor.profile_path}` : null,
+            }));
+
         return {
             id: String(tv.id),
             title: tv.name, // Map name to title
@@ -114,6 +137,7 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
             genres: tv.genres.map(g => g.name),
             rating: parseFloat(tv.vote_average.toFixed(1)),
             logos: logos.length > 0 ? logos : undefined,
+            cast: castMembers,
         };
 
     } catch (error) {

@@ -1,7 +1,7 @@
 
 // I need to import the RAW fetcher from lib/api/tmdb
 import { fetchTMDB } from '@/lib/api/tmdb';
-import { TitleDetail } from '@/types/title';
+import { TitleDetail, CastMember } from '@/types/title';
 import { generateMockDetail, generateMockItems } from '@/lib/mock-data';
 
 interface TMDBMovie {
@@ -33,6 +33,18 @@ interface TMDBImagesResponse {
     posters: TMDBImage[];
 }
 
+interface TMDBCastMember {
+    id: number;
+    name: string;
+    character: string;
+    profile_path: string | null;
+    order: number;
+}
+
+interface TMDBCreditsResponse {
+    cast: TMDBCastMember[];
+}
+
 export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
     const useMock = process.env.USE_MOCK === 'true';
 
@@ -47,7 +59,7 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
         console.log(`[Real Mode] Fetching Data for ID: ${id}`);
 
         // 1. Fetch Movie Details with Images via append_to_response
-        const movie = await fetchTMDB<TMDBMovie & { images: TMDBImagesResponse }>(`/movie/${id}?append_to_response=images`);
+        const movie = await fetchTMDB<TMDBMovie & { images: TMDBImagesResponse, credits: TMDBCreditsResponse }>(`/movie/${id}?append_to_response=images,credits`);
         const images = movie.images || { backdrops: [], logos: [], posters: [] };
 
         // 2. Logo Logic
@@ -103,7 +115,18 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
             topBackdrops.push(`https://image.tmdb.org/t/p/original${movie.backdrop_path}`);
         }
 
-        // 4. Transform to Domain Model
+        // 4. Cast Logic
+        const castMembers: CastMember[] = (movie.credits?.cast || [])
+            .sort((a, b) => a.order - b.order)
+            .slice(0, 10)
+            .map(actor => ({
+                id: actor.id,
+                name: actor.name,
+                character: actor.character,
+                profileImageUrl: actor.profile_path ? `https://image.tmdb.org/t/p/w500${actor.profile_path}` : null,
+            }));
+
+        // 5. Transform to Domain Model
         return {
             id: String(movie.id),
             title: movie.title,
@@ -119,6 +142,7 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
             genres: movie.genres.map(g => g.name),
             rating: parseFloat(movie.vote_average.toFixed(1)),
             logos: logos.length > 0 ? logos : undefined,
+            cast: castMembers,
         };
 
     } catch (error) {
