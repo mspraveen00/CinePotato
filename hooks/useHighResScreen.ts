@@ -15,7 +15,8 @@ import { useState, useEffect } from 'react';
  * 
  * Target "true" criteria:
  * 1. Physical large monitor (> 2000px wide)
- * 2. High-DPR Laptop/Tablet (width >= 768px AND dpr >= 2)
+ * 2. High-DPR screens (dpr >= 2) - This handles mobile devices where "object-cover" 
+ *    in a tall portrait container aggressively stretches 16:9 1080p images.
  */
 export function useHighResScreen() {
     const [isHighRes, setIsHighRes] = useState(false);
@@ -31,9 +32,10 @@ export function useHighResScreen() {
                 return;
             }
 
-            // 2. High density laptops/tablets (e.g. MacBook Pro, iPad Pro)
-            // Exclude small mobile phones (width < 768)
-            if (width >= 768 && dpr >= 2) {
+            // 2. High density screens (Retina)
+            // Includes mobile phones because 1080p (1280x720) backdrops (16:9) 
+            // are severely stretched by "object-cover" in a 100dvh portrait container.
+            if (dpr >= 2) {
                 setIsHighRes(true);
                 return;
             }

@@ -3,7 +3,6 @@ import { MoreVertical, Star, Film, Monitor, Tv, Gamepad } from 'lucide-react';
 import { ListItem } from '@/lib/store/user-lists-store';
 import { IMDbIcon, TMDBLogo, MetacriticIcon, RottenTomatoesIcon, PopcornIcon } from './RatingIcons';
 import { getResizedImage } from '@/lib/image-utils';
-import { useHighResScreen } from '@/hooks/useHighResScreen';
 
 interface WideCardProps {
     item: ListItem;
@@ -12,8 +11,6 @@ interface WideCardProps {
 }
 
 export function WideCard({ item, actions, variant = 'standard' }: WideCardProps) {
-    const isHighRes = useHighResScreen();
-
     const getMediaTypeIcon = () => {
         switch (item.media_type) {
             case 'movie': return <Film className="w-3 h-3" />;
@@ -57,7 +54,7 @@ export function WideCard({ item, actions, variant = 'standard' }: WideCardProps)
                     <div className="absolute inset-0 z-0">
                         {item.backdrop_path && (
                             <img
-                                src={getResizedImage(`https://image.tmdb.org/t/p/original${item.backdrop_path}`, isHighRes ? "fullscreen" : "hero")}
+                                src={getResizedImage(`https://image.tmdb.org/t/p/original${item.backdrop_path}`, "hero")}
                                 alt=""
                                 className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-50 transition-opacity"
                                 loading="lazy"
