@@ -2,13 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { Season, Episode, EpisodeGroupList } from '@/types/title';
-import { Star, Calendar, Clock, ChevronDown } from 'lucide-react';
+import { Star, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 
 interface SeasonsSectionProps {
     titleId: string;
     seasons?: Season[];
     episodeGroups?: EpisodeGroupList[];
+}
+
+interface PillData {
+    id: string;
+    name: string;
+    posterPath?: string | null;
+    episodeCount?: number;
 }
 
 export default function SeasonsSection({ titleId, seasons = [], episodeGroups = [] }: SeasonsSectionProps) {
@@ -24,13 +31,18 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
     const [error, setError] = useState<string | null>(null);
 
     // Derived variables for rendering pills
-    const [activePills, setActivePills] = useState<Array<{ id: string, name: string }>>([]);
+    const [activePills, setActivePills] = useState<PillData[]>([]);
     const [episodeCountToDisplay, setEpisodeCountToDisplay] = useState<number>(0);
 
     // Initial load: Set the broadcast season pills
     useEffect(() => {
         if (selectedGroupType === defaultGroupState && seasons.length > 0) {
-            setActivePills(seasons.map(s => ({ id: String(s.seasonNumber), name: s.name })));
+            setActivePills(seasons.map(s => ({ 
+                id: String(s.seasonNumber), 
+                name: s.name,
+                posterPath: s.posterPath,
+                episodeCount: s.episodeCount
+            })));
             if (!activePills.find(p => p.id === selectedPillId)) {
                 setSelectedPillId(String(seasons[0].seasonNumber));
             }
@@ -77,7 +89,11 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
                     // The groups need to be parsed
                     const groups = data.groups || [];
                     if (isMounted) {
-                        setActivePills(groups.map((g: any) => ({ id: g.id, name: g.name })));
+                        setActivePills(groups.map((g: any) => ({ 
+                            id: g.id, 
+                            name: g.name,
+                            episodeCount: g.episodes ? g.episodes.length : undefined 
+                        })));
 
                         // If current pill is not in this new group, select the first one
                         const currentPillGroup = groups.find((g: any) => g.id === selectedPillId);
@@ -127,7 +143,7 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
 
     if (seasons.length === 0 && episodeGroups.length === 0) return null;
 
-    const displayedEpisodes = episodes.slice(0, 5);
+    const displayedEpisodes = episodes.slice(0, 10);
 
     // Calculate viewAllLink
     const viewAllLink = selectedGroupType === defaultGroupState
@@ -135,19 +151,22 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
         : `/tv/${titleId}/group/${selectedGroupType}/${selectedPillId}`;
 
     return (
-        <section className="mt-8 space-y-6">
+        <section className="mt-12 space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                <h3 className="text-xl font-bold">Seasons & Episodes</h3>
+                <Link href={viewAllLink} className="group flex items-center gap-2 hover:text-amber-500 transition-colors w-fit">
+                    <h3 className="text-xl sm:text-2xl font-bold">Seasons & Episodes</h3>
+                    <ChevronDown className="w-5 h-5 -rotate-90 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                </Link>
 
                 {/* Group Selector Dropdown */}
                 {episodeGroups.length > 0 && (
-                    <div className="flex items-center gap-2 text-sm">
-                        <span className="text-neutral-400 font-medium">Order By:</span>
+                    <div className="flex items-center gap-2 text-sm shrink-0">
+                        <span className="text-neutral-400 font-medium hidden sm:inline-block">Order By:</span>
                         <div className="relative">
                             <select
                                 value={selectedGroupType}
                                 onChange={(e) => setSelectedGroupType(e.target.value)}
-                                className="appearance-none bg-neutral-800/80 border border-neutral-700 text-white py-1.5 pl-3 pr-8 rounded-lg outline-none focus:border-amber-500/50 cursor-pointer font-medium"
+                                className="appearance-none bg-neutral-800/80 hover:bg-neutral-800 border border-neutral-700 text-white py-1.5 pl-3 pr-8 rounded-lg outline-none focus:border-amber-500/50 cursor-pointer font-medium transition-colors"
                             >
                                 {seasons.length > 0 && (
                                     <option value="broadcast">Broadcast Seasons</option>
@@ -164,116 +183,156 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
                 )}
             </div>
 
-            {/* Season/Group Selector Pills */}
-            {activePills.length > 0 && (
-                <div
-                    className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 md:-mx-[calc((100vw-100%)/2)] md:px-[calc((100vw-100%)/2)]"
-                    style={{
-                        maskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
-                        WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)'
-                    }}
-                >
-                    {activePills.map((pill) => (
-                        <button
-                            key={pill.id}
-                            onClick={() => setSelectedPillId(pill.id)}
-                            className={`px-6 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-all duration-300 ${selectedPillId === pill.id
-                                    ? 'bg-white text-black shadow-lg shadow-white/10'
-                                    : 'bg-neutral-800/80 text-neutral-300 hover:bg-neutral-700 backdrop-blur-sm border border-neutral-700/50'
-                                }`}
-                        >
-                            {pill.name}
-                        </button>
-                    ))}
-                </div>
-            )}
+            <div className="space-y-8 pt-2">
+                {/* Season/Group Selector Cards */}
+                {activePills.length > 0 && (
+                    <div
+                        className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x -mx-4 px-4 md:-mx-[calc((100vw-100%)/2)] md:px-[calc((100vw-100%)/2)]"
+                        style={{
+                            maskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
+                            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)'
+                        }}
+                    >
+                        {activePills.map((pill) => {
+                            const isSelected = selectedPillId === pill.id;
+                            return (
+                                <button
+                                    key={pill.id}
+                                    onClick={() => setSelectedPillId(pill.id)}
+                                    className={`group flex-shrink-0 w-28 sm:w-36 flex flex-col gap-2.5 snap-start outline-none transition-all duration-300 ${isSelected ? '' : 'hover:-translate-y-1'}`}
+                                >
+                                    <div className={`w-full aspect-[2/3] rounded-xl overflow-hidden relative transition-all duration-300 ${
+                                        isSelected 
+                                            ? 'ring-2 ring-white ring-offset-2 ring-offset-[#0a0a0a] shadow-xl' 
+                                            : 'ring-1 ring-neutral-800 shadow-sm'
+                                    }`}>
+                                        {pill.posterPath ? (
+                                            <img
+                                                src={`https://image.tmdb.org/t/p/w342${pill.posterPath}`}
+                                                alt={pill.name}
+                                                className={`w-full h-full object-cover transition-transform duration-700 ${isSelected ? '' : 'group-hover:scale-110'}`}
+                                                loading="lazy"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-neutral-800/80 flex items-center justify-center p-3 text-center border-b border-neutral-700">
+                                                <span className="text-neutral-500 font-medium text-sm line-clamp-3">{pill.name}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col items-start px-0.5 text-left w-full space-y-0.5">
+                                        <span className={`text-[13px] sm:text-sm font-semibold line-clamp-1 w-full transition-colors ${isSelected ? 'text-white' : 'text-neutral-300 group-hover:text-white'}`}>
+                                            {pill.name}
+                                        </span>
+                                        {pill.episodeCount !== undefined && (
+                                            <span className={`text-[11px] sm:text-xs transition-colors ${isSelected ? 'text-neutral-400' : 'text-neutral-500'}`}>
+                                                {pill.episodeCount} Episodes
+                                            </span>
+                                        )}
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
 
-            {/* Episodes List */}
-            <div className="space-y-4 pt-2">
-                {loading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
-                    </div>
-                ) : error ? (
-                    <div className="p-4 bg-red-900/20 text-red-400 rounded-lg text-sm">
-                        {error}
-                    </div>
-                ) : episodes.length === 0 ? (
-                    <div className="p-8 text-center text-neutral-500 bg-neutral-900/50 rounded-xl border border-neutral-800">
-                        No episodes found.
-                    </div>
-                ) : (
-                    <div className="flex flex-col gap-4">
-                        {displayedEpisodes.map((ep) => (
-                            <div key={ep.id} className="group flex flex-col sm:flex-row gap-4 sm:gap-6 bg-neutral-900/40 hover:bg-neutral-800/60 p-3 sm:p-4 rounded-xl border border-neutral-800/50 transition-colors duration-300">
-                                {/* Thumbnail */}
-                                <div className="w-full sm:w-64 flex-shrink-0 relative overflow-hidden rounded-lg aspect-video bg-neutral-800">
-                                    {ep.stillPath ? (
-                                        <img
-                                            src={ep.stillPath}
-                                            alt={ep.name}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                            loading="lazy"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-neutral-600">
-                                            No Image
+                {/* Episodes List */}
+                <div className="relative">
+                    {loading ? (
+                        <div className="flex items-center justify-center py-12">
+                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
+                        </div>
+                    ) : error ? (
+                        <div className="p-4 bg-red-900/20 text-red-400 rounded-lg text-sm">
+                            {error}
+                        </div>
+                    ) : episodes.length === 0 ? (
+                        <div className="p-8 text-center text-neutral-500 bg-neutral-900/50 rounded-xl border border-neutral-800">
+                            No episodes found.
+                        </div>
+                    ) : (
+                        <div 
+                            className="flex gap-4 sm:gap-5 overflow-x-auto pb-6 scrollbar-hide snap-x -mx-4 px-4 md:-mx-[calc((100vw-100%)/2)] md:px-[calc((100vw-100%)/2)]"
+                            style={{
+                                maskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
+                                WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)'
+                            }}
+                        >
+                            {displayedEpisodes.map((ep) => (
+                                <Link 
+                                    key={ep.id} 
+                                    href={`/tv/${titleId}/season/${ep.seasonNumber}/episode/${ep.episodeNumber}`} 
+                                    className="group relative flex-shrink-0 w-64 sm:w-[280px] snap-start flex flex-col gap-3"
+                                >
+                                    {/* Thumbnail */}
+                                    <div className="w-full aspect-video rounded-xl bg-neutral-800/50 overflow-hidden relative border border-neutral-800/60 shadow-sm transition-all duration-300 group-hover:border-neutral-600/80 group-hover:shadow-md">
+                                        {ep.stillPath ? (
+                                            <img
+                                                src={ep.stillPath}
+                                                alt={ep.name}
+                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                loading="lazy"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-neutral-600">
+                                                No Image
+                                            </div>
+                                        )}
+                                        {/* Play Overlay */}
+                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
+                                            <div className="w-12 h-12 rounded-full bg-black/50 border border-white/20 backdrop-blur-sm flex items-center justify-center transform scale-90 group-hover:scale-100 transition-all duration-300 shadow-xl">
+                                                <ChevronDown className="w-6 h-6 -rotate-90 text-white ml-0.5" />
+                                            </div>
                                         </div>
-                                    )}
-                                    {/* Number Badge */}
-                                    <div className="absolute top-2 left-2 px-2 py-1 bg-black/70 backdrop-blur-md rounded-md text-xs font-medium text-white shadow-sm border border-white/10">
-                                        E{ep.episodeNumber}
                                     </div>
-                                </div>
-
-                                {/* Info */}
-                                <div className="flex-1 flex flex-col justify-center min-w-0">
-                                    <h4 className="text-base sm:text-lg font-bold text-white mb-2 leading-tight group-hover:text-amber-500 transition-colors">
-                                        {ep.episodeNumber}. {ep.name}
-                                    </h4>
-
-                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-neutral-400 mb-3">
-                                        {ep.rating > 0 && (
-                                            <div className="flex items-center gap-1 font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded">
-                                                <Star className="w-3.5 h-3.5 fill-current" />
-                                                {ep.rating}
-                                            </div>
-                                        )}
-                                        {ep.airDate && (
-                                            <div className="flex items-center gap-1.5">
-                                                <Calendar className="w-3.5 h-3.5" />
-                                                <span>{new Date(ep.airDate).getFullYear()}</span>
-                                            </div>
-                                        )}
-                                        {ep.runtime && (
-                                            <div className="flex items-center gap-1.5">
-                                                <Clock className="w-3.5 h-3.5" />
-                                                <span>{ep.runtime}m</span>
-                                            </div>
-                                        )}
+                                    
+                                    {/* Info */}
+                                    <div className="flex flex-col gap-1.5 px-1 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent">
+                                        <h4 className="text-white font-medium text-sm sm:text-[15px] line-clamp-1 transition-colors group-hover:text-amber-500">
+                                             {ep.episodeNumber}. {ep.name}
+                                        </h4>
+                                        <div className="flex items-center gap-2 text-[13px] text-neutral-400 font-medium">
+                                            <span className="bg-neutral-800/80 px-1.5 py-0.5 rounded text-neutral-300 border border-neutral-700/50 shadow-sm">
+                                                S{ep.seasonNumber} E{ep.episodeNumber}
+                                            </span>
+                                            {ep.runtime ? (
+                                                <span className="flex items-center justify-center gap-2">
+                                                    <span className="w-1 h-1 rounded-full bg-neutral-600"></span>
+                                                    <span>{ep.runtime}m</span>
+                                                </span>
+                                            ): null}
+                                            {ep.rating > 0 && (
+                                                <span className="flex items-center gap-1 text-amber-500/90 ml-auto">
+                                                    <Star className="w-3.5 h-3.5 fill-current" />
+                                                    {ep.rating}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
+                                </Link>
+                            ))}
 
-                                    <p className="text-sm text-neutral-300 line-clamp-2 leading-relaxed max-w-3xl">
-                                        {ep.overview || "No description available."}
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* View All Button */}
-                {!loading && !error && episodes.length > 5 && (
-                    <div className="pt-2 pb-4">
-                        <Link
-                            href={viewAllLink}
-                            className="w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-6 bg-neutral-800/50 hover:bg-neutral-800 text-neutral-300 hover:text-white rounded-xl border border-neutral-700 transition-all duration-300 group"
-                        >
-                            <span className="font-medium">View All {episodeCountToDisplay} Episodes</span>
-                            <ChevronDown className="w-4 h-4 -rotate-90 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                    </div>
-                )}
+                            {/* View All Card */}
+                            {!loading && !error && episodes.length > 10 && (
+                                <Link 
+                                    href={viewAllLink}
+                                    className="group flex-shrink-0 w-64 sm:w-[280px] snap-start flex flex-col gap-3"
+                                >
+                                    <div className="w-full aspect-video rounded-xl bg-neutral-900/40 border border-neutral-800/50 flex flex-col items-center justify-center gap-4 transition-all duration-300 hover:bg-neutral-800/50 hover:border-neutral-700/80">
+                                        <div className="w-12 h-12 rounded-full bg-neutral-800/80 border border-neutral-700/50 shadow-sm flex items-center justify-center transition-all duration-300 group-hover:bg-neutral-700/80 group-hover:scale-110">
+                                            <ChevronDown className="w-5 h-5 -rotate-90 text-neutral-300 transition-all group-hover:text-white group-hover:translate-x-0.5" />
+                                        </div>
+                                        <span className="font-medium text-sm text-neutral-400 transition-colors group-hover:text-white">View All {episodeCountToDisplay}</span>
+                                    </div>
+                                    {/* Invisible spacer to match the height of episode text */}
+                                    <div className="flex flex-col gap-1 px-1 opacity-0 pointer-events-none">
+                                        <h4 className="text-sm sm:text-[15px] line-clamp-1">Spacer</h4>
+                                        <div className="text-[13px]">Spacer</div>
+                                    </div>
+                                </Link>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
         </section>
     );
