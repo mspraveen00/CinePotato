@@ -187,11 +187,7 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
                 {/* Season/Group Selector Cards */}
                 {activePills.length > 0 && (
                     <div
-                        className="flex gap-4 overflow-x-auto pt-4 pb-4 scrollbar-hide -mx-4 px-4 md:-mx-[calc((100vw-100%)/2)] md:px-[calc((100vw-100%)/2)]"
-                        style={{
-                            maskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
-                            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)'
-                        }}
+                        className="carousel-mask carousel-mask-title flex gap-4 overflow-x-auto pt-4 pb-4 scrollbar-hide -mx-4 px-4 md:-mx-[calc((100vw-100%)/2)] md:px-[calc((100vw-100%)/2)]"
                     >
                         {activePills.map((pill) => {
                             const isSelected = selectedPillId === pill.id;
@@ -251,11 +247,7 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
                         </div>
                     ) : (
                         <div
-                            className="flex gap-4 sm:gap-5 overflow-x-auto pt-4 pb-6 scrollbar-hide -mx-4 px-4 md:-mx-[calc((100vw-100%)/2)] md:px-[calc((100vw-100%)/2)]"
-                            style={{
-                                maskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
-                                WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)'
-                            }}
+                            className="carousel-mask carousel-mask-title flex gap-4 sm:gap-5 overflow-x-auto pt-4 pb-6 scrollbar-hide -mx-4 px-4 md:-mx-[calc((100vw-100%)/2)] md:px-[calc((100vw-100%)/2)]"
                         >
                             {displayedEpisodes.map((ep) => (
                                 <Link

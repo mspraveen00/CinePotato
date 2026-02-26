@@ -12,8 +12,8 @@ export function NavigationLayout({ children }: { children: React.ReactNode }) {
     const closeMobileMenu = () => setIsMobileMenuOpen(false)
     const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen)
 
-    // Check if we are on a title details page (movie, tv, game routes)
-    const isTitlePage = pathname?.match(/^\/(movie|tv|game)\/[^\/]+$/)
+    // Check if we are on a title details page or any of its sub-pages (e.g., /tv/123/season/1)
+    const isTitlePage = pathname?.match(/^\/(movie|tv|game)\/[^\/]+/)
 
     return (
         <>
