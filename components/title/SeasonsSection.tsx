@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Season, Episode, EpisodeGroupList } from '@/types/title';
-import { Star, ChevronDown } from 'lucide-react';
+import { Star, ChevronDown, ListVideo } from 'lucide-react';
 import Link from 'next/link';
 
 interface SeasonsSectionProps {
@@ -183,7 +183,7 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
                 )}
             </div>
 
-            <div className="space-y-8 pt-2">
+            <div className="space-y-4 pt-2">
                 {/* Season/Group Selector Cards */}
                 {activePills.length > 0 && (
                     <div
@@ -218,13 +218,14 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
                                             </div>
                                         )}
                                     </div>
-                                    <div className="flex flex-col items-start px-0.5 text-left w-full space-y-0.5">
-                                        <span className={`text-[13px] sm:text-sm font-semibold line-clamp-1 w-full transition-colors ${isSelected ? 'text-white' : 'text-neutral-300 group-hover:text-white'}`}>
+                                    <div className="flex items-center justify-between px-0.5 text-left w-full gap-2">
+                                        <span className={`text-[13px] sm:text-sm font-semibold line-clamp-1 transition-colors ${isSelected ? 'text-white' : 'text-neutral-300 group-hover:text-white'}`}>
                                             {pill.name}
                                         </span>
                                         {pill.episodeCount !== undefined && (
-                                            <span className={`text-[11px] sm:text-xs transition-colors ${isSelected ? 'text-neutral-400' : 'text-neutral-500'}`}>
-                                                {pill.episodeCount} Episodes
+                                            <span className={`flex items-center gap-1 flex-shrink-0 text-[11px] sm:text-xs font-medium transition-colors ${isSelected ? 'text-neutral-400' : 'text-neutral-500'}`}>
+                                                <ListVideo className="w-3.5 h-3.5" />
+                                                {pill.episodeCount}
                                             </span>
                                         )}
                                     </div>
@@ -260,7 +261,7 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
                                 <Link
                                     key={ep.id}
                                     href={`/tv/${titleId}/season/${ep.seasonNumber}/episode/${ep.episodeNumber}`}
-                                    className="group relative flex-shrink-0 w-64 sm:w-[280px] flex flex-col gap-3"
+                                    className="group relative flex-shrink-0 w-48 sm:w-[220px] flex flex-col gap-3"
                                 >
                                     {/* Thumbnail */}
                                     <div className="w-full aspect-video rounded-xl bg-neutral-800/50 overflow-hidden relative border border-neutral-800/60 shadow-sm transition-all duration-300 group-hover:border-neutral-600/80 group-hover:shadow-md">
@@ -276,12 +277,6 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
                                                 No Image
                                             </div>
                                         )}
-                                        {/* Play Overlay */}
-                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
-                                            <div className="w-12 h-12 rounded-full bg-black/50 border border-white/20 backdrop-blur-sm flex items-center justify-center transform scale-90 group-hover:scale-100 transition-all duration-300 shadow-xl">
-                                                <ChevronDown className="w-6 h-6 -rotate-90 text-white ml-0.5" />
-                                            </div>
-                                        </div>
                                     </div>
 
                                     {/* Info */}
@@ -314,7 +309,7 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
                             {!loading && !error && episodes.length > 10 && (
                                 <Link
                                     href={viewAllLink}
-                                    className="group flex-shrink-0 w-64 sm:w-[280px] flex flex-col gap-3"
+                                    className="group flex-shrink-0 w-48 sm:w-[220px] flex flex-col gap-3"
                                 >
                                     <div className="w-full aspect-video rounded-xl bg-neutral-900/40 border border-neutral-800/50 flex flex-col items-center justify-center gap-4 transition-all duration-300 hover:bg-neutral-800/50 hover:border-neutral-700/80">
                                         <div className="w-12 h-12 rounded-full bg-neutral-800/80 border border-neutral-700/50 shadow-sm flex items-center justify-center transition-all duration-300 group-hover:bg-neutral-700/80 group-hover:scale-110">
