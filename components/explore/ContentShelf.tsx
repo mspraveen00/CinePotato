@@ -28,7 +28,7 @@ export function ContentShelf({ shelfId, title, items, mediaType, className }: Co
             {/* Horizontal Scroll Container */}
             <div
                 className="
-            flex gap-4 overflow-x-auto pb-4 
+            flex gap-4 overflow-x-auto pt-4 pb-4 
             snap-x snap-mandatory scroll-pl-4 md:scroll-pl-8
         "
             >

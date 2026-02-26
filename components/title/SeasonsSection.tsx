@@ -37,8 +37,8 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
     // Initial load: Set the broadcast season pills
     useEffect(() => {
         if (selectedGroupType === defaultGroupState && seasons.length > 0) {
-            setActivePills(seasons.map(s => ({ 
-                id: String(s.seasonNumber), 
+            setActivePills(seasons.map(s => ({
+                id: String(s.seasonNumber),
                 name: s.name,
                 posterPath: s.posterPath,
                 episodeCount: s.episodeCount
@@ -89,10 +89,10 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
                     // The groups need to be parsed
                     const groups = data.groups || [];
                     if (isMounted) {
-                        setActivePills(groups.map((g: any) => ({ 
-                            id: g.id, 
+                        setActivePills(groups.map((g: any) => ({
+                            id: g.id,
                             name: g.name,
-                            episodeCount: g.episodes ? g.episodes.length : undefined 
+                            episodeCount: g.episodes ? g.episodes.length : undefined
                         })));
 
                         // If current pill is not in this new group, select the first one
@@ -187,7 +187,7 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
                 {/* Season/Group Selector Cards */}
                 {activePills.length > 0 && (
                     <div
-                        className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x -mx-4 px-4 md:-mx-[calc((100vw-100%)/2)] md:px-[calc((100vw-100%)/2)]"
+                        className="flex gap-4 overflow-x-auto pt-4 pb-4 scrollbar-hide -mx-4 px-4 md:-mx-[calc((100vw-100%)/2)] md:px-[calc((100vw-100%)/2)]"
                         style={{
                             maskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
                             WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)'
@@ -199,13 +199,12 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
                                 <button
                                     key={pill.id}
                                     onClick={() => setSelectedPillId(pill.id)}
-                                    className={`group flex-shrink-0 w-28 sm:w-36 flex flex-col gap-2.5 snap-start outline-none transition-all duration-300 ${isSelected ? '' : 'hover:-translate-y-1'}`}
+                                    className={`group flex-shrink-0 w-28 sm:w-36 flex flex-col gap-2.5 outline-none transition-all duration-300 ${isSelected ? '' : 'hover:-translate-y-1'}`}
                                 >
-                                    <div className={`w-full aspect-[2/3] rounded-xl overflow-hidden relative transition-all duration-300 ${
-                                        isSelected 
-                                            ? 'ring-2 ring-white ring-offset-2 ring-offset-[#0a0a0a] shadow-xl' 
-                                            : 'ring-1 ring-neutral-800 shadow-sm'
-                                    }`}>
+                                    <div className={`w-full aspect-[2/3] rounded-xl overflow-hidden relative transition-all duration-300 ${isSelected
+                                        ? 'ring-2 ring-white ring-offset-2 ring-offset-[#0a0a0a] shadow-xl'
+                                        : 'ring-1 ring-neutral-800 shadow-sm'
+                                        }`}>
                                         {pill.posterPath ? (
                                             <img
                                                 src={`https://image.tmdb.org/t/p/w342${pill.posterPath}`}
@@ -250,18 +249,18 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
                             No episodes found.
                         </div>
                     ) : (
-                        <div 
-                            className="flex gap-4 sm:gap-5 overflow-x-auto pb-6 scrollbar-hide snap-x -mx-4 px-4 md:-mx-[calc((100vw-100%)/2)] md:px-[calc((100vw-100%)/2)]"
+                        <div
+                            className="flex gap-4 sm:gap-5 overflow-x-auto pt-4 pb-6 scrollbar-hide -mx-4 px-4 md:-mx-[calc((100vw-100%)/2)] md:px-[calc((100vw-100%)/2)]"
                             style={{
                                 maskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
                                 WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)'
                             }}
                         >
                             {displayedEpisodes.map((ep) => (
-                                <Link 
-                                    key={ep.id} 
-                                    href={`/tv/${titleId}/season/${ep.seasonNumber}/episode/${ep.episodeNumber}`} 
-                                    className="group relative flex-shrink-0 w-64 sm:w-[280px] snap-start flex flex-col gap-3"
+                                <Link
+                                    key={ep.id}
+                                    href={`/tv/${titleId}/season/${ep.seasonNumber}/episode/${ep.episodeNumber}`}
+                                    className="group relative flex-shrink-0 w-64 sm:w-[280px] flex flex-col gap-3"
                                 >
                                     {/* Thumbnail */}
                                     <div className="w-full aspect-video rounded-xl bg-neutral-800/50 overflow-hidden relative border border-neutral-800/60 shadow-sm transition-all duration-300 group-hover:border-neutral-600/80 group-hover:shadow-md">
@@ -284,11 +283,11 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     {/* Info */}
                                     <div className="flex flex-col gap-1.5 px-1 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent">
                                         <h4 className="text-white font-medium text-sm sm:text-[15px] line-clamp-1 transition-colors group-hover:text-amber-500">
-                                             {ep.episodeNumber}. {ep.name}
+                                            {ep.episodeNumber}. {ep.name}
                                         </h4>
                                         <div className="flex items-center gap-2 text-[13px] text-neutral-400 font-medium">
                                             <span className="bg-neutral-800/80 px-1.5 py-0.5 rounded text-neutral-300 border border-neutral-700/50 shadow-sm">
@@ -299,7 +298,7 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
                                                     <span className="w-1 h-1 rounded-full bg-neutral-600"></span>
                                                     <span>{ep.runtime}m</span>
                                                 </span>
-                                            ): null}
+                                            ) : null}
                                             {ep.rating > 0 && (
                                                 <span className="flex items-center gap-1 text-amber-500/90 ml-auto">
                                                     <Star className="w-3.5 h-3.5 fill-current" />
@@ -313,9 +312,9 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
 
                             {/* View All Card */}
                             {!loading && !error && episodes.length > 10 && (
-                                <Link 
+                                <Link
                                     href={viewAllLink}
-                                    className="group flex-shrink-0 w-64 sm:w-[280px] snap-start flex flex-col gap-3"
+                                    className="group flex-shrink-0 w-64 sm:w-[280px] flex flex-col gap-3"
                                 >
                                     <div className="w-full aspect-video rounded-xl bg-neutral-900/40 border border-neutral-800/50 flex flex-col items-center justify-center gap-4 transition-all duration-300 hover:bg-neutral-800/50 hover:border-neutral-700/80">
                                         <div className="w-12 h-12 rounded-full bg-neutral-800/80 border border-neutral-700/50 shadow-sm flex items-center justify-center transition-all duration-300 group-hover:bg-neutral-700/80 group-hover:scale-110">
