@@ -5,6 +5,7 @@ import { MediaSwitcher } from "./MediaSwitcher"
 import { ContentShelf } from "./ContentShelf"
 import { LetterboxdSection } from "./LetterboxdSection"
 import { ShelfType, ShelfConfig, ExploreItem } from "@/lib/constants/explore"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 
 interface ExploreFeedProps {
     movies: (ShelfConfig & { items: ExploreItem[] })[]
@@ -13,7 +14,21 @@ interface ExploreFeedProps {
 }
 
 export function ExploreFeed({ movies, tv, games }: ExploreFeedProps) {
-    const [activeType, setActiveType] = React.useState<ShelfType>("movies")
+    const searchParams = useSearchParams()
+    const router = useRouter()
+    const pathname = usePathname()
+
+    const activeType = (searchParams.get("type") as ShelfType) || "movies"
+
+    const setActiveType = React.useCallback((newType: ShelfType) => {
+        const params = new URLSearchParams(searchParams.toString())
+        if (newType === "movies") {
+            params.delete("type")
+        } else {
+            params.set("type", newType)
+        }
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+    }, [pathname, router, searchParams])
 
     const currentData = activeType === "movies" ? movies :
         activeType === "tv" ? tv :

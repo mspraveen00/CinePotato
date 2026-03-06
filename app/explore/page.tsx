@@ -1,3 +1,4 @@
+import * as React from "react"
 import { ExploreFeed } from "@/components/explore/ExploreFeed"
 import { MOVIE_SHELVES, TV_SHELVES, GAME_SHELVES } from "@/lib/constants/explore"
 import { getExploreMovies } from "@/lib/services/movie-service"
@@ -23,7 +24,9 @@ export default async function ExplorePage() {
 
     return (
         <div className="min-h-screen">
-            <ExploreFeed movies={movieShelvesData} tv={tvShelvesData} games={gameShelvesData} />
+            <React.Suspense fallback={<div className="h-screen w-full flex items-center justify-center">Loading feed...</div>}>
+                <ExploreFeed movies={movieShelvesData} tv={tvShelvesData} games={gameShelvesData} />
+            </React.Suspense>
         </div>
     )
 }

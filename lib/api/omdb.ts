@@ -1,4 +1,4 @@
-const OMDB_BASE_URL = 'http://www.omdbapi.com';
+const OMDB_BASE_URL = 'https://www.omdbapi.com';
 const OMDB_API_KEY = process.env.OMDB_API_KEY;
 
 export async function fetchOMDb<T>(params: Record<string, string>): Promise<T> {

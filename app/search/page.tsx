@@ -19,10 +19,9 @@ function SearchPageContent() {
     const pathname = usePathname()
 
     const initialQuery = searchParams.get("q") || ""
-    const initialType = (searchParams.get("type") as MediaType) || "movie"
+    const activeType = (searchParams.get("type") as MediaType) || "movie"
 
     const [query, setQuery] = React.useState(initialQuery)
-    const [activeType, setActiveType] = React.useState<MediaType>(initialType)
     const [mode, setMode] = React.useState<"recent" | "advanced">("recent")
     // const [showAdvanced, setShowAdvanced] = React.useState(false) // Deprecated in favor of mode
     const [sort, setSort] = React.useState<SortOption>("relevance")
@@ -36,61 +35,57 @@ function SearchPageContent() {
 
     const [filters, setFilters] = React.useState<SearchFilters>({
         query: initialQuery,
-        mediaTypes: [initialType],
+        mediaTypes: [activeType],
     })
 
     // Active filters that actually trigger the search
     const [activeFilters, setActiveFilters] = React.useState<SearchFilters | null>(
-        initialQuery ? { query: initialQuery, mediaTypes: [initialType] } : null
+        initialQuery ? { query: initialQuery, mediaTypes: [activeType] } : null
     )
     const [isFiltersCollapsed, setIsFiltersCollapsed] = React.useState(false)
 
-    // Sync state to URL without triggering a full navigation
+    // Sync query from URL when navigating back/forward
     React.useEffect(() => {
+        const urlQ = searchParams.get("q") || ""
+        if (urlQ !== query) {
+            setQuery(urlQ)
+        }
+    }, [searchParams])
+
+    const setActiveType = React.useCallback((newType: MediaType) => {
         const params = new URLSearchParams(searchParams.toString())
-        let changed = false
-
-        if (query) {
-            if (params.get("q") !== query) {
-                params.set("q", query)
-                changed = true
-            }
-        } else if (params.has("q")) {
-            params.delete("q")
-            changed = true
-        }
-
-        if (activeType !== "movie") {
-            if (params.get("type") !== activeType) {
-                params.set("type", activeType)
-                changed = true
-            }
-        } else if (params.has("type")) {
+        if (newType === "movie") {
             params.delete("type")
-            changed = true
+        } else {
+            params.set("type", newType)
         }
-
-        if (changed) {
-            router.replace(`${pathname}?${params.toString()}`, { scroll: false })
-        }
-    }, [query, activeType, pathname, router, searchParams])
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+    }, [pathname, router, searchParams])
 
     // Debounce query update - ONLY for global search bar
     React.useEffect(() => {
         const timer = setTimeout(() => {
             if (activeFilters?.query !== query) {
-                // For global search bar, we might want auto-search?
-                // User said "In Advanced Search page...". Global search usually auto-searches.
-                // Let's keep global search auto, but Advanced manual.
-                // IF query changes, we update activeFilters.
                 if (query) {
-                    setActiveFilters(prev => ({ ...prev, query, mediaTypes: [activeType] }))
+                    setActiveFilters(prev => ({ ...(prev || {}), query, mediaTypes: [activeType] } as SearchFilters))
                     setMode("recent") // Switch to results view behavior if you type in global search
+                } else if (activeFilters?.query) {
+                    // if query is empty, clear active filters query
+                    setActiveFilters(prev => ({ ...(prev || {}), query: "", mediaTypes: [activeType] } as SearchFilters))
                 }
+            }
+
+            // Sync query to URL
+            const urlQ = searchParams.get("q") || ""
+            if (urlQ !== query) {
+                const params = new URLSearchParams(searchParams.toString())
+                if (query) params.set("q", query)
+                else params.delete("q")
+                router.replace(`${pathname}?${params.toString()}`, { scroll: false })
             }
         }, 500)
         return () => clearTimeout(timer)
-    }, [query])
+    }, [query, activeType, activeFilters?.query, searchParams, pathname, router])
 
     // Update filters when active type changes (reset/default)
     React.useEffect(() => {
