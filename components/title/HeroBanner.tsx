@@ -189,7 +189,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
 
                     {/* Floating Poster */}
                     <motion.div
-                        className="w-32 sm:w-40 md:w-64 aspect-[2/3] relative rounded-lg shadow-2xl shadow-black/50 overflow-hidden border border-neutral-700/50 flex-shrink-0 select-none cursor-pointer pointer-events-auto"
+                        className="w-32 sm:w-40 md:w-64 aspect-[2/3] relative rounded-lg shadow-2xl shadow-black/50 overflow-hidden border border-neutral-700/50 flex-shrink-0 select-none cursor-pointer pointer-events-auto md:-mb-12"
                         style={{ scale: posterScale, y: posterY, opacity: posterOpacity }}
                         onDoubleClick={handlePosterDoubleClick}
                         title={posters && posters.length > 1 ? "Double click to change poster" : undefined}
@@ -245,85 +245,90 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                                 ))}
                             </div>
                         </div>
-
-                        {/* Ratings */}
-                        <div className="flex items-center gap-4 bg-neutral-900/60 backdrop-blur-md border border-neutral-700/50 rounded-full px-4 py-2 w-fit pointer-events-auto">
-                            {/* IMDb */}
-                            {omdbRatings?.imdb && (
-                                <a
-                                    href={imdbId ? `https://www.imdb.com/title/${imdbId}/` : undefined}
-                                    target="_blank" rel="noopener noreferrer"
-                                    className={cn("flex items-center gap-1.5 md:gap-2", imdbId && "hover:opacity-80 transition-opacity cursor-pointer")}
-                                    title="View on IMDb"
-                                >
-                                    <IMDbIcon className="w-8 h-4 md:w-10 md:h-5" />
-                                    <span className="text-white font-semibold text-sm md:text-base">
-                                        {omdbRatings.imdb}
-                                    </span>
-                                </a>
-                            )}
-
-                            {/* Metacritic */}
-                            {omdbRatings?.metacritic && (
-                                <a
-                                    href={`https://www.metacritic.com/search/${encodeURIComponent(title)}/`}
-                                    target="_blank" rel="noopener noreferrer"
-                                    className="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer"
-                                    title="Search on Metacritic"
-                                >
-                                    <MetacriticIcon className="w-5 h-5 md:w-6 md:h-6" />
-                                    <span className="text-white font-semibold text-sm md:text-base">
-                                        {omdbRatings.metacritic}
-                                    </span>
-                                </a>
-                            )}
-
-                            {/* TMDB */}
-                            <a
-                                href={`https://www.themoviedb.org/${mediaType || 'movie'}/${id}`}
-                                target="_blank" rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer"
-                                title="View on TMDB"
-                            >
-                                <TMDBLogo className="w-5 h-5 md:w-6 md:h-6" />
-                                <span className="text-white font-semibold text-sm md:text-base">
-                                    {rating.toFixed(1)}
-                                </span>
-                            </a>
-
-                            {/* Rotten Tomatoes */}
-                            {omdbRatings?.rottenTomatoes && (
-                                <a
-                                    href={omdbRatings.rottenTomatoesUrl || getRottenTomatoesUrl(title, mediaType || 'movie')}
-                                    target="_blank" rel="noopener noreferrer"
-                                    className="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer"
-                                    title="View on Rotten Tomatoes"
-                                >
-                                    <RottenTomatoesIcon
-                                        className="w-5 h-5 md:w-6 md:h-6"
-                                        fresh={parseInt(omdbRatings.rottenTomatoes) >= 60}
-                                    />
-                                    <span className="text-white font-semibold text-sm md:text-base">
-                                        {omdbRatings.rottenTomatoes}
-                                    </span>
-                                </a>
-                            )}
-
-                            {/* Divider */}
-                            <div className="w-px h-5 bg-neutral-600" />
-
-                            {/* Rate Button */}
-                            <button
-                                className="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer"
-                                title="Rate this title"
-                                onClick={() => { /* TODO: Implement user rating */ }}
-                            >
-                                <Star size={18} className="text-amber-400" />
-                                <span className="text-white font-semibold text-sm md:text-base">Rate</span>
-                            </button>
-                        </div>
                     </motion.div>
                 </div>
+
+                {/* Ratings - Own row on mobile, aligned with metadata on desktop */}
+                <motion.div
+                    className="mt-3 md:mt-2 md:ml-[calc(theme(width.64)+theme(gap.12))]"
+                    style={{ opacity: contentOpacity, y: contentY }}
+                >
+                    <div className="flex items-center gap-3 md:gap-4 bg-neutral-900/60 backdrop-blur-md border border-neutral-700/50 rounded-full px-3 md:px-4 py-1.5 md:py-2 w-fit mx-auto md:mx-0 pointer-events-auto">
+                        {/* IMDb */}
+                        {omdbRatings?.imdb && (
+                            <a
+                                href={imdbId ? `https://www.imdb.com/title/${imdbId}/` : undefined}
+                                target="_blank" rel="noopener noreferrer"
+                                className={cn("flex items-center gap-1 md:gap-2", imdbId && "hover:opacity-80 transition-opacity cursor-pointer")}
+                                title="View on IMDb"
+                            >
+                                <IMDbIcon className="w-7 h-3.5 md:w-10 md:h-5" />
+                                <span className="text-white font-semibold text-xs md:text-base">
+                                    {omdbRatings.imdb}
+                                </span>
+                            </a>
+                        )}
+
+                        {/* Metacritic */}
+                        {omdbRatings?.metacritic && (
+                            <a
+                                href={`https://www.metacritic.com/search/${encodeURIComponent(title)}/`}
+                                target="_blank" rel="noopener noreferrer"
+                                className="flex items-center gap-1 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+                                title="Search on Metacritic"
+                            >
+                                <MetacriticIcon className="w-4 h-4 md:w-6 md:h-6" />
+                                <span className="text-white font-semibold text-xs md:text-base">
+                                    {omdbRatings.metacritic}
+                                </span>
+                            </a>
+                        )}
+
+                        {/* TMDB */}
+                        <a
+                            href={`https://www.themoviedb.org/${mediaType || 'movie'}/${id}`}
+                            target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+                            title="View on TMDB"
+                        >
+                            <TMDBLogo className="w-4 h-4 md:w-6 md:h-6" />
+                            <span className="text-white font-semibold text-xs md:text-base">
+                                {rating.toFixed(1)}
+                            </span>
+                        </a>
+
+                        {/* Rotten Tomatoes */}
+                        {omdbRatings?.rottenTomatoes && (
+                            <a
+                                href={omdbRatings.rottenTomatoesUrl || getRottenTomatoesUrl(title, mediaType || 'movie')}
+                                target="_blank" rel="noopener noreferrer"
+                                className="flex items-center gap-1 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+                                title="View on Rotten Tomatoes"
+                            >
+                                <RottenTomatoesIcon
+                                    className="w-4 h-4 md:w-6 md:h-6"
+                                    fresh={parseInt(omdbRatings.rottenTomatoes) >= 60}
+                                />
+                                <span className="text-white font-semibold text-xs md:text-base">
+                                    {omdbRatings.rottenTomatoes}
+                                </span>
+                            </a>
+                        )}
+
+                        {/* Divider */}
+                        <div className="w-px h-4 md:h-5 bg-neutral-600" />
+
+                        {/* Rate Button */}
+                        <button
+                            className="flex items-center gap-1 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+                            title="Rate this title"
+                            onClick={() => { /* TODO: Implement user rating */ }}
+                        >
+                            <Star size={14} className="text-amber-400 md:w-[18px] md:h-[18px]" />
+                            <span className="text-white font-semibold text-xs md:text-base">Rate</span>
+                        </button>
+                    </div>
+                </motion.div>
             </div>
         </div>
     );
