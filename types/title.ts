@@ -59,6 +59,7 @@ export interface TitleDetail {
     genres: string[];
     rating: number; // 0-10
     logos?: string[];
+    posters?: string[];
     cast?: CastMember[];
     crew?: CrewMember[];
     seasons?: Season[];

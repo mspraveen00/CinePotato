@@ -1,4 +1,3 @@
-
 // I need to import the RAW fetcher from lib/api/tmdb
 import { fetchTMDB } from '@/lib/api/tmdb';
 import { TitleDetail, CastMember, CrewMember } from '@/types/title';
@@ -113,6 +112,33 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
             });
         }
 
+        // 2.5 Poster Logic
+        const topPosters: string[] = [];
+
+        // Always start with the primary poster if it exists
+        if (movie.poster_path) {
+            topPosters.push(`https://image.tmdb.org/t/p/w500${movie.poster_path}`);
+        }
+
+        // Filter available posters:
+        // 1. Match original language
+        // 2. English ('en')
+        // 3. No language (null)
+        const validLanguages = [movie.original_language, 'en', null];
+
+        const additionalPosters = images.posters
+            .filter(p => validLanguages.includes(p.iso_639_1))       // Language filter
+            .filter(p => !topPosters.some(existing => existing.includes(p.file_path))) // Prevent duplicates
+            .sort((a, b) => {
+                // Secondary sort: vote count (to filter out random 10/10s with 1 vote)
+                if (b.vote_average !== a.vote_average) return b.vote_average - a.vote_average;
+                return b.vote_count - a.vote_count;
+            })
+            .slice(0, 3 - topPosters.length) // Take only what we need to reach 3 max
+            .map(p => `https://image.tmdb.org/t/p/w500${p.file_path}`);
+
+        topPosters.push(...additionalPosters);
+
         // 3. Backdrop Logic
         const topBackdrops = images.backdrops
             .sort((a, b) => b.vote_average - a.vote_average)
@@ -184,6 +210,7 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
             genres: movie.genres.map(g => g.name),
             rating: parseFloat(movie.vote_average.toFixed(1)),
             logos: logos.length > 0 ? logos : undefined,
+            posters: topPosters.length > 0 ? topPosters : undefined,
             cast: castMembers,
             crew: crewMembers,
         };

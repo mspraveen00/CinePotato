@@ -19,6 +19,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
         genres,
         rating,
         logos,
+        posters,
     } = titleDetail;
 
     const [logoIndex, setLogoIndex] = useState(0);
@@ -28,6 +29,16 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
     const handleLogoDoubleClick = () => {
         if (logos && logos.length > 1) {
             setLogoIndex((prev) => (prev + 1) % logos.length);
+        }
+    };
+
+    const [posterIndex, setPosterIndex] = useState(0);
+    const hasPosters = posters && posters.length > 0;
+    const currentPoster = hasPosters ? posters[posterIndex] : posterPath;
+
+    const handlePosterDoubleClick = () => {
+        if (posters && posters.length > 1) {
+            setPosterIndex((prev) => (prev + 1) % posters.length);
         }
     };
 
@@ -158,11 +169,13 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
 
                     {/* Floating Poster */}
                     <motion.div
-                        className="w-32 sm:w-40 md:w-64 aspect-[2/3] relative rounded-lg shadow-2xl shadow-black/50 overflow-hidden border border-neutral-700/50 flex-shrink-0"
+                        className="w-32 sm:w-40 md:w-64 aspect-[2/3] relative rounded-lg shadow-2xl shadow-black/50 overflow-hidden border border-neutral-700/50 flex-shrink-0 select-none cursor-pointer pointer-events-auto"
                         style={{ scale: posterScale, y: posterY, opacity: posterOpacity }}
+                        onDoubleClick={handlePosterDoubleClick}
+                        title={posters && posters.length > 1 ? "Double click to change poster" : undefined}
                     >
                         <img
-                            src={getResizedImage(posterPath, "poster")}
+                            src={getResizedImage(currentPoster, "poster")}
                             alt={`${title} Poster`}
                             className="absolute inset-0 w-full h-full object-cover"
                             loading="lazy"
