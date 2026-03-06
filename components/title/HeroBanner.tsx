@@ -107,7 +107,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
 
             {/* Backdrop Carousel */}
             <motion.div
-                className="absolute inset-x-0 top-0 h-[80vh] md:h-[90vh] z-0"
+                className="absolute inset-x-0 top-0 h-[80%] md:h-[90%] z-0"
                 style={{ opacity: bannerOpacity, y: bannerY }}
             >
                 <div className="overflow-hidden h-full w-full" ref={emblaRef}>
