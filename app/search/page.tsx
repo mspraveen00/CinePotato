@@ -29,9 +29,28 @@ function SearchPageContent() {
     const [results, setResults] = React.useState<SearchResult[]>([])
     const [error, setError] = React.useState<string | null>(null)
 
-    const [recentSearches, setRecentSearches] = React.useState<string[]>([
-        "Avatar: The Way of Water", "The Last of Us", "Elden Ring", "Christopher Nolan"
-    ]) // Mock recent searches
+    const [recentSearches, setRecentSearches] = React.useState<string[]>([])
+
+    // Load recent searches on mount
+    React.useEffect(() => {
+        const stored = localStorage.getItem("cinepotato_recent_searches")
+        if (stored) {
+            try {
+                setRecentSearches(JSON.parse(stored))
+            } catch (e) {
+                // ignore
+            }
+        }
+    }, [])
+
+    const addRecentSearch = React.useCallback((search: string) => {
+        if (!search.trim()) return;
+        setRecentSearches(prev => {
+            const updated = [search, ...prev.filter(s => s.toLowerCase() !== search.toLowerCase())].slice(0, 10);
+            localStorage.setItem("cinepotato_recent_searches", JSON.stringify(updated));
+            return updated;
+        });
+    }, []);
 
     const [filters, setFilters] = React.useState<SearchFilters>({
         query: initialQuery,
@@ -176,6 +195,7 @@ function SearchPageContent() {
                 <SearchBar
                     value={query}
                     onChange={setQuery}
+                    onSubmit={addRecentSearch}
                     onClear={() => setQuery("")}
                 />
                 <div className="absolute top-full left-0 right-0 h-4 bg-gradient-to-b from-black/90 to-transparent pointer-events-none" />
@@ -222,9 +242,21 @@ function SearchPageContent() {
                 {mode === "recent" && !query && results.length === 0 && (
                     <RecentSearches
                         searches={recentSearches}
-                        onSelect={setQuery}
-                        onClear={() => setRecentSearches([])}
-                        onRemove={(q) => setRecentSearches(prev => prev.filter(s => s !== q))}
+                        onSelect={(q) => {
+                            setQuery(q)
+                            addRecentSearch(q)
+                        }}
+                        onClear={() => {
+                            setRecentSearches([])
+                            localStorage.removeItem("cinepotato_recent_searches")
+                        }}
+                        onRemove={(q) => {
+                            setRecentSearches(prev => {
+                                const updated = prev.filter(s => s !== q)
+                                localStorage.setItem("cinepotato_recent_searches", JSON.stringify(updated))
+                                return updated
+                            })
+                        }}
                     />
                 )}
 
@@ -249,7 +281,11 @@ function SearchPageContent() {
                         ) : (
                             <>
                                 {results.length > 0 && <SortControl value={sort} onChange={setSort} />}
-                                <SearchResults results={results} isLoading={isLoading} />
+                                <SearchResults
+                                    results={results}
+                                    isLoading={isLoading}
+                                    onResultClick={() => query && addRecentSearch(query)}
+                                />
                             </>
                         )}
                     </div>

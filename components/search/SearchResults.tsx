@@ -26,9 +26,10 @@ const MEDIA_COLORS: Record<MediaType, string> = {
 interface SearchResultsProps {
     results: SearchResult[];
     isLoading?: boolean;
+    onResultClick?: (result: SearchResult) => void;
 }
 
-export function SearchResults({ results, isLoading }: SearchResultsProps) {
+export function SearchResults({ results, isLoading, onResultClick }: SearchResultsProps) {
     if (isLoading) {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-6xl mx-auto mt-8">
@@ -54,7 +55,12 @@ export function SearchResults({ results, isLoading }: SearchResultsProps) {
                 const colorClass = MEDIA_COLORS[result.mediaType];
 
                 return (
-                    <Link href={`/${result.mediaType}/${result.id}`} key={result.id} className="block group">
+                    <Link
+                        href={`/${result.mediaType}/${result.id}`}
+                        key={result.id}
+                        className="block group"
+                        onClick={() => onResultClick?.(result)}
+                    >
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}

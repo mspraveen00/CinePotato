@@ -5,11 +5,12 @@ import { useRef, useEffect } from 'react';
 interface SearchBarProps {
     value: string;
     onChange: (value: string) => void;
+    onSubmit?: (value: string) => void;
     onClear: () => void;
     autoFocus?: boolean;
 }
 
-export function SearchBar({ value, onChange, onClear, autoFocus = true }: SearchBarProps) {
+export function SearchBar({ value, onChange, onSubmit, onClear, autoFocus = true }: SearchBarProps) {
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -23,7 +24,13 @@ export function SearchBar({ value, onChange, onClear, autoFocus = true }: Search
             {/* Glow effect */}
             <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-600 to-purple-600 rounded-2xl opacity-20 group-hover:opacity-40 transition duration-500 blur"></div>
 
-            <div className="relative bg-neutral-900/90 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center px-4 py-3 shadow-2xl transition-all duration-300 group-focus-within:border-white/20 group-focus-within:bg-neutral-900/95">
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    onSubmit?.(value);
+                }}
+                className="relative bg-neutral-900/90 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center px-4 py-3 shadow-2xl transition-all duration-300 group-focus-within:border-white/20 group-focus-within:bg-neutral-900/95"
+            >
                 <Search className="w-5 h-5 text-neutral-400 group-focus-within:text-white transition-colors" />
                 <input
                     ref={inputRef}
@@ -35,6 +42,7 @@ export function SearchBar({ value, onChange, onClear, autoFocus = true }: Search
                 />
                 {value && (
                     <button
+                        type="button"
                         onClick={() => {
                             onClear();
                             inputRef.current?.focus();
@@ -44,7 +52,7 @@ export function SearchBar({ value, onChange, onClear, autoFocus = true }: Search
                         <X className="w-4 h-4 text-neutral-400 hover:text-white" />
                     </button>
                 )}
-            </div>
+            </form>
         </div>
     );
 }
