@@ -1,5 +1,6 @@
 import { fetchTMDB } from '@/lib/api/tmdb';
-import { TitleDetail, CastMember, CrewMember } from '@/types/title';
+import { fetchOMDb } from '@/lib/api/omdb';
+import { TitleDetail, CastMember, CrewMember, OMDbRatings } from '@/types/title';
 import { generateMockTVDetail, generateMockItems } from '@/lib/mock-data';
 
 interface TMDBTVShow {
@@ -27,6 +28,9 @@ interface TMDBTVShow {
         poster_path: string | null;
         overview: string;
     }[];
+    external_ids: {
+        imdb_id: string | null;
+    };
 }
 
 interface TMDBImage {
@@ -78,7 +82,7 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
     try {
         console.log(`[Real Mode] Fetching TV Data for ID: ${id}`);
 
-        const tv = await fetchTMDB<TMDBTVShow & { images: TMDBImagesResponse, credits: TMDBCreditsResponse, episode_groups: { results: TMDBEpisodeGroupList[] } }>(`/tv/${id}?append_to_response=images,credits,episode_groups`);
+        const tv = await fetchTMDB<TMDBTVShow & { images: TMDBImagesResponse, credits: TMDBCreditsResponse, episode_groups: { results: TMDBEpisodeGroupList[] } }>(`/tv/${id}?append_to_response=images,credits,episode_groups,external_ids`);
         const images = tv.images || { backdrops: [], logos: [], posters: [] };
 
         // Logo Logic
@@ -249,6 +253,31 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
                 type: eg.type,
             }));
 
+        // OMDb Ratings Logic
+        let omdbRatings: OMDbRatings | undefined;
+        if (tv.external_ids?.imdb_id) {
+            try {
+                const omdbData = await fetchOMDb<any>({ i: tv.external_ids.imdb_id });
+                if (omdbData && omdbData.Response === 'True') {
+                    omdbRatings = {};
+                    if (omdbData.imdbRating && omdbData.imdbRating !== 'N/A') {
+                        omdbRatings.imdb = omdbData.imdbRating;
+                    }
+                    if (omdbData.Metascore && omdbData.Metascore !== 'N/A') {
+                        omdbRatings.metacritic = omdbData.Metascore;
+                    }
+                    if (omdbData.Ratings && Array.isArray(omdbData.Ratings)) {
+                        const rottenTomatoes = omdbData.Ratings.find((r: any) => r.Source === 'Rotten Tomatoes');
+                        if (rottenTomatoes && rottenTomatoes.Value) {
+                            omdbRatings.rottenTomatoes = rottenTomatoes.Value;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error(`Failed to fetch OMDb ratings for IMDb ID ${tv.external_ids.imdb_id}:`, error);
+            }
+        }
+
         return {
             id: String(tv.id),
             title: tv.name, // Map name to title
@@ -267,6 +296,7 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
             crew: crewMembers,
             seasons: mappedSeasons.length > 0 ? mappedSeasons : undefined,
             episodeGroups: mappedEpisodeGroups.length > 0 ? mappedEpisodeGroups : undefined,
+            omdbRatings,
         };
 
     } catch (error) {

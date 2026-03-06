@@ -3,10 +3,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
-import { Star, MoreVertical } from 'lucide-react';
+import { MoreVertical } from 'lucide-react';
 import { HeroBannerProps } from '@/types/title';
 import { cn } from '@/lib/utils';
 import { getResizedImage } from '@/lib/image-utils';
+import { IMDbIcon, TMDBLogo, MetacriticIcon, RottenTomatoesIcon } from '@/components/user/RatingIcons';
 
 export default function HeroBanner({ titleDetail }: HeroBannerProps) {
     const {
@@ -20,6 +21,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
         rating,
         logos,
         posters,
+        omdbRatings,
     } = titleDetail;
 
     const [logoIndex, setLogoIndex] = useState(0);
@@ -226,20 +228,48 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                             </div>
                         </div>
 
-                        {/* Rating */}
-                        <div className="flex items-center gap-1.5 md:gap-2 mt-1 md:mt-0">
-                            <div className="flex">
-                                {[...Array(5)].map((_, i) => (
-                                    <Star
-                                        key={i}
-                                        className={cn(
-                                            "w-3.5 h-3.5 md:w-[18px] md:h-[18px] fill-current",
-                                            i < Math.round(rating / 2) ? "text-yellow-500" : "text-neutral-600"
-                                        )}
-                                    />
-                                ))}
+                        {/* Ratings */}
+                        <div className="flex items-center gap-4 bg-neutral-900/60 backdrop-blur-md border border-neutral-700/50 rounded-full px-4 py-2 w-fit">
+                            {/* IMDb */}
+                            {omdbRatings?.imdb && (
+                                <div className="flex items-center gap-1.5 md:gap-2">
+                                    <IMDbIcon className="w-8 h-4 md:w-10 md:h-5" />
+                                    <span className="text-white font-semibold text-sm md:text-base">
+                                        {omdbRatings.imdb}
+                                    </span>
+                                </div>
+                            )}
+
+                            {/* Metacritic */}
+                            {omdbRatings?.metacritic && (
+                                <div className="flex items-center gap-1.5 md:gap-2">
+                                    <MetacriticIcon className="w-5 h-5 md:w-6 md:h-6" />
+                                    <span className="text-white font-semibold text-sm md:text-base">
+                                        {omdbRatings.metacritic}
+                                    </span>
+                                </div>
+                            )}
+
+                            {/* TMDB */}
+                            <div className="flex items-center gap-1.5 md:gap-2">
+                                <TMDBLogo className="w-5 h-5 md:w-6 md:h-6" />
+                                <span className="text-white font-semibold text-sm md:text-base">
+                                    {rating.toFixed(1)}
+                                </span>
                             </div>
-                            <span className="text-neutral-400 text-xs md:text-sm">({rating.toFixed(1)}) / 10</span>
+
+                            {/* Rotten Tomatoes */}
+                            {omdbRatings?.rottenTomatoes && (
+                                <div className="flex items-center gap-1.5 md:gap-2">
+                                    <RottenTomatoesIcon
+                                        className="w-5 h-5 md:w-6 md:h-6"
+                                        fresh={parseInt(omdbRatings.rottenTomatoes) >= 60}
+                                    />
+                                    <span className="text-white font-semibold text-sm md:text-base">
+                                        {omdbRatings.rottenTomatoes}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </motion.div>
                 </div>

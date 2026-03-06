@@ -48,6 +48,12 @@ export interface EpisodeGroupList {
     type: number;
 }
 
+export interface OMDbRatings {
+    imdb?: string;
+    metacritic?: string;
+    rottenTomatoes?: string;
+}
+
 export interface TitleDetail {
     id: string;
     title: string;
@@ -64,4 +70,5 @@ export interface TitleDetail {
     crew?: CrewMember[];
     seasons?: Season[];
     episodeGroups?: EpisodeGroupList[];
+    omdbRatings?: OMDbRatings;
 }

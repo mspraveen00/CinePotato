@@ -1,6 +1,6 @@
-// I need to import the RAW fetcher from lib/api/tmdb
 import { fetchTMDB } from '@/lib/api/tmdb';
-import { TitleDetail, CastMember, CrewMember } from '@/types/title';
+import { fetchOMDb } from '@/lib/api/omdb';
+import { TitleDetail, CastMember, CrewMember, OMDbRatings } from '@/types/title';
 import { generateMockDetail, generateMockItems } from '@/lib/mock-data';
 
 interface TMDBMovie {
@@ -14,6 +14,7 @@ interface TMDBMovie {
     poster_path: string;
     backdrop_path: string;
     original_language: string;
+    imdb_id: string | null;
 }
 
 interface TMDBImage {
@@ -194,7 +195,32 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
                 profileImageUrl: c.profile_path ? `https://image.tmdb.org/t/p/w500${c.profile_path}` : null,
             }));
 
-        // 6. Transform to Domain Model
+        // 6. OMDb Ratings Logic
+        let omdbRatings: OMDbRatings | undefined;
+        if (movie.imdb_id) {
+            try {
+                const omdbData = await fetchOMDb<any>({ i: movie.imdb_id });
+                if (omdbData && omdbData.Response === 'True') {
+                    omdbRatings = {};
+                    if (omdbData.imdbRating && omdbData.imdbRating !== 'N/A') {
+                        omdbRatings.imdb = omdbData.imdbRating;
+                    }
+                    if (omdbData.Metascore && omdbData.Metascore !== 'N/A') {
+                        omdbRatings.metacritic = omdbData.Metascore;
+                    }
+                    if (omdbData.Ratings && Array.isArray(omdbData.Ratings)) {
+                        const rottenTomatoes = omdbData.Ratings.find((r: any) => r.Source === 'Rotten Tomatoes');
+                        if (rottenTomatoes && rottenTomatoes.Value) {
+                            omdbRatings.rottenTomatoes = rottenTomatoes.Value;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error(`Failed to fetch OMDb ratings for IMDb ID ${movie.imdb_id}:`, error);
+            }
+        }
+
+        // 7. Transform to Domain Model
         return {
             id: String(movie.id),
             title: movie.title,
@@ -213,6 +239,7 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
             posters: topPosters.length > 0 ? topPosters : undefined,
             cast: castMembers,
             crew: crewMembers,
+            omdbRatings,
         };
 
     } catch (error) {
