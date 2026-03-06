@@ -64,7 +64,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
     const contentY = useTransform(scrollY, [0, 150], [0, -20]);
 
     return (
-        <div className="relative w-full h-[100dvh] overflow-hidden bg-black">
+        <div className="relative w-full h-[100svh] md:h-[100dvh] overflow-hidden bg-black">
             {/* Context Menu / 3-Dots */}
             <motion.div
                 className="absolute top-4 right-4 md:top-6 md:right-6 z-40"
