@@ -52,6 +52,7 @@ export interface OMDbRatings {
     imdb?: string;
     metacritic?: string;
     rottenTomatoes?: string;
+    rottenTomatoesUrl?: string; // Native URL directly from OMDb!
 }
 
 export interface TitleDetail {
@@ -71,4 +72,6 @@ export interface TitleDetail {
     seasons?: Season[];
     episodeGroups?: EpisodeGroupList[];
     omdbRatings?: OMDbRatings;
+    imdbId?: string;
+    mediaType?: 'movie' | 'tv';
 }

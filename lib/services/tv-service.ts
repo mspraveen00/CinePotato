@@ -257,7 +257,7 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
         let omdbRatings: OMDbRatings | undefined;
         if (tv.external_ids?.imdb_id) {
             try {
-                const omdbData = await fetchOMDb<any>({ i: tv.external_ids.imdb_id });
+                const omdbData = await fetchOMDb<any>({ i: tv.external_ids.imdb_id, tomatoes: 'true' });
                 if (omdbData && omdbData.Response === 'True') {
                     omdbRatings = {};
                     if (omdbData.imdbRating && omdbData.imdbRating !== 'N/A') {
@@ -271,6 +271,9 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
                         if (rottenTomatoes && rottenTomatoes.Value) {
                             omdbRatings.rottenTomatoes = rottenTomatoes.Value;
                         }
+                    }
+                    if (omdbData.tomatoURL && omdbData.tomatoURL !== 'N/A') {
+                        omdbRatings.rottenTomatoesUrl = omdbData.tomatoURL;
                     }
                 }
             } catch (error) {
@@ -297,6 +300,8 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
             seasons: mappedSeasons.length > 0 ? mappedSeasons : undefined,
             episodeGroups: mappedEpisodeGroups.length > 0 ? mappedEpisodeGroups : undefined,
             omdbRatings,
+            imdbId: tv.external_ids?.imdb_id || undefined,
+            mediaType: 'tv',
         };
 
     } catch (error) {

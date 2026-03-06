@@ -11,6 +11,7 @@ import { IMDbIcon, TMDBLogo, MetacriticIcon, RottenTomatoesIcon } from '@/compon
 
 export default function HeroBanner({ titleDetail }: HeroBannerProps) {
     const {
+        id,
         title,
         overview,
         backdropImages,
@@ -22,7 +23,24 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
         logos,
         posters,
         omdbRatings,
+        imdbId,
+        mediaType,
     } = titleDetail;
+
+    // Helper function to generate Rotten Tomatoes URL
+    const getRottenTomatoesUrl = (titleStr: string, type: 'movie' | 'tv') => {
+        // Remove years in parentheses if they exist at the end e.g. "Title (2024)"
+        let cleanTitle = titleStr.replace(/\(\d{4}\)$/, '').trim();
+
+        const slug = cleanTitle
+            .toLowerCase()
+            .replace(/['.:&]/g, '') // remove specific special chars
+            .replace(/[^a-z0-9]+/g, '_') // replace spaces and other non-alphanumeric with underscore
+            .replace(/^_+|_+$/g, ''); // trim underscores
+
+        const pathPrefix = type === 'tv' ? 'tv' : 'm';
+        return `https://www.rottentomatoes.com/${pathPrefix}/${slug}`;
+    };
 
     const [logoIndex, setLogoIndex] = useState(0);
     const hasLogos = logos && logos.length > 0;
@@ -229,38 +247,58 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                         </div>
 
                         {/* Ratings */}
-                        <div className="flex items-center gap-4 bg-neutral-900/60 backdrop-blur-md border border-neutral-700/50 rounded-full px-4 py-2 w-fit">
+                        <div className="flex items-center gap-4 bg-neutral-900/60 backdrop-blur-md border border-neutral-700/50 rounded-full px-4 py-2 w-fit pointer-events-auto">
                             {/* IMDb */}
                             {omdbRatings?.imdb && (
-                                <div className="flex items-center gap-1.5 md:gap-2">
+                                <a
+                                    href={imdbId ? `https://www.imdb.com/title/${imdbId}/` : undefined}
+                                    target="_blank" rel="noopener noreferrer"
+                                    className={cn("flex items-center gap-1.5 md:gap-2", imdbId && "hover:opacity-80 transition-opacity cursor-pointer")}
+                                    title="View on IMDb"
+                                >
                                     <IMDbIcon className="w-8 h-4 md:w-10 md:h-5" />
                                     <span className="text-white font-semibold text-sm md:text-base">
                                         {omdbRatings.imdb}
                                     </span>
-                                </div>
+                                </a>
                             )}
 
                             {/* Metacritic */}
                             {omdbRatings?.metacritic && (
-                                <div className="flex items-center gap-1.5 md:gap-2">
+                                <a
+                                    href={`https://www.metacritic.com/search/${encodeURIComponent(title)}/`}
+                                    target="_blank" rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+                                    title="Search on Metacritic"
+                                >
                                     <MetacriticIcon className="w-5 h-5 md:w-6 md:h-6" />
                                     <span className="text-white font-semibold text-sm md:text-base">
                                         {omdbRatings.metacritic}
                                     </span>
-                                </div>
+                                </a>
                             )}
 
                             {/* TMDB */}
-                            <div className="flex items-center gap-1.5 md:gap-2">
+                            <a
+                                href={`https://www.themoviedb.org/${mediaType || 'movie'}/${id}`}
+                                target="_blank" rel="noopener noreferrer"
+                                className="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+                                title="View on TMDB"
+                            >
                                 <TMDBLogo className="w-5 h-5 md:w-6 md:h-6" />
                                 <span className="text-white font-semibold text-sm md:text-base">
                                     {rating.toFixed(1)}
                                 </span>
-                            </div>
+                            </a>
 
                             {/* Rotten Tomatoes */}
                             {omdbRatings?.rottenTomatoes && (
-                                <div className="flex items-center gap-1.5 md:gap-2">
+                                <a
+                                    href={omdbRatings.rottenTomatoesUrl || getRottenTomatoesUrl(title, mediaType || 'movie')}
+                                    target="_blank" rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+                                    title="View on Rotten Tomatoes"
+                                >
                                     <RottenTomatoesIcon
                                         className="w-5 h-5 md:w-6 md:h-6"
                                         fresh={parseInt(omdbRatings.rottenTomatoes) >= 60}
@@ -268,7 +306,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                                     <span className="text-white font-semibold text-sm md:text-base">
                                         {omdbRatings.rottenTomatoes}
                                     </span>
-                                </div>
+                                </a>
                             )}
                         </div>
                     </motion.div>

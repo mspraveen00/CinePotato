@@ -199,7 +199,7 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
         let omdbRatings: OMDbRatings | undefined;
         if (movie.imdb_id) {
             try {
-                const omdbData = await fetchOMDb<any>({ i: movie.imdb_id });
+                const omdbData = await fetchOMDb<any>({ i: movie.imdb_id, tomatoes: 'true' });
                 if (omdbData && omdbData.Response === 'True') {
                     omdbRatings = {};
                     if (omdbData.imdbRating && omdbData.imdbRating !== 'N/A') {
@@ -213,6 +213,9 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
                         if (rottenTomatoes && rottenTomatoes.Value) {
                             omdbRatings.rottenTomatoes = rottenTomatoes.Value;
                         }
+                    }
+                    if (omdbData.tomatoURL && omdbData.tomatoURL !== 'N/A') {
+                        omdbRatings.rottenTomatoesUrl = omdbData.tomatoURL;
                     }
                 }
             } catch (error) {
@@ -240,6 +243,8 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
             cast: castMembers,
             crew: crewMembers,
             omdbRatings,
+            imdbId: movie.imdb_id || undefined,
+            mediaType: 'movie',
         };
 
     } catch (error) {
