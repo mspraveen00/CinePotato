@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
-import { MoreVertical } from 'lucide-react';
+import { MoreVertical, Star } from 'lucide-react';
 import { HeroBannerProps } from '@/types/title';
 import { cn } from '@/lib/utils';
 import { getResizedImage } from '@/lib/image-utils';
@@ -308,6 +308,19 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                                     </span>
                                 </a>
                             )}
+
+                            {/* Divider */}
+                            <div className="w-px h-5 bg-neutral-600" />
+
+                            {/* Rate Button */}
+                            <button
+                                className="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+                                title="Rate this title"
+                                onClick={() => { /* TODO: Implement user rating */ }}
+                            >
+                                <Star size={18} className="text-amber-400" />
+                                <span className="text-white font-semibold text-sm md:text-base">Rate</span>
+                            </button>
                         </div>
                     </motion.div>
                 </div>
