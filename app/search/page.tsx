@@ -11,10 +11,18 @@ import { SearchFilters, SearchResult, MediaType, SortOption } from "@/types/sear
 import { generateMockItems } from "@/lib/mock-data"
 import { searchTitles } from "@/lib/services/search-service"
 import { Filter, History, SlidersHorizontal } from "lucide-react"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 
-export default function SearchPage() {
-    const [query, setQuery] = React.useState("")
-    const [activeType, setActiveType] = React.useState<MediaType>("movie")
+function SearchPageContent() {
+    const searchParams = useSearchParams()
+    const router = useRouter()
+    const pathname = usePathname()
+
+    const initialQuery = searchParams.get("q") || ""
+    const initialType = (searchParams.get("type") as MediaType) || "movie"
+
+    const [query, setQuery] = React.useState(initialQuery)
+    const [activeType, setActiveType] = React.useState<MediaType>(initialType)
     const [mode, setMode] = React.useState<"recent" | "advanced">("recent")
     // const [showAdvanced, setShowAdvanced] = React.useState(false) // Deprecated in favor of mode
     const [sort, setSort] = React.useState<SortOption>("relevance")
@@ -27,13 +35,45 @@ export default function SearchPage() {
     ]) // Mock recent searches
 
     const [filters, setFilters] = React.useState<SearchFilters>({
-        query: "",
-        mediaTypes: ["movie"],
+        query: initialQuery,
+        mediaTypes: [initialType],
     })
 
     // Active filters that actually trigger the search
-    const [activeFilters, setActiveFilters] = React.useState<SearchFilters | null>(null)
+    const [activeFilters, setActiveFilters] = React.useState<SearchFilters | null>(
+        initialQuery ? { query: initialQuery, mediaTypes: [initialType] } : null
+    )
     const [isFiltersCollapsed, setIsFiltersCollapsed] = React.useState(false)
+
+    // Sync state to URL without triggering a full navigation
+    React.useEffect(() => {
+        const params = new URLSearchParams(searchParams.toString())
+        let changed = false
+
+        if (query) {
+            if (params.get("q") !== query) {
+                params.set("q", query)
+                changed = true
+            }
+        } else if (params.has("q")) {
+            params.delete("q")
+            changed = true
+        }
+
+        if (activeType !== "movie") {
+            if (params.get("type") !== activeType) {
+                params.set("type", activeType)
+                changed = true
+            }
+        } else if (params.has("type")) {
+            params.delete("type")
+            changed = true
+        }
+
+        if (changed) {
+            router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+        }
+    }, [query, activeType, pathname, router, searchParams])
 
     // Debounce query update - ONLY for global search bar
     React.useEffect(() => {
@@ -221,5 +261,13 @@ export default function SearchPage() {
                 )}
             </div>
         </div>
+    )
+}
+
+export default function SearchPage() {
+    return (
+        <React.Suspense fallback={<div className="min-h-screen bg-black" />}>
+            <SearchPageContent />
+        </React.Suspense>
     )
 }
