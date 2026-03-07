@@ -8,6 +8,7 @@ import { HeroBannerProps } from '@/types/title';
 import { cn } from '@/lib/utils';
 import { getResizedImage } from '@/lib/image-utils';
 import { IMDbIcon, TMDBLogo, MetacriticIcon, RottenTomatoesIcon } from '@/components/user/RatingIcons';
+import BackdropGallery from './BackdropGallery';
 
 export default function HeroBanner({ titleDetail }: HeroBannerProps) {
     const {
@@ -76,6 +77,35 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
         emblaApi.on('select', onSelect);
     }, [emblaApi, onSelect]);
 
+    // Gallery State & Browser History Management
+    const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+
+    const openGallery = useCallback(() => {
+        setIsGalleryOpen(true);
+        window.history.pushState({ galleryOpen: true }, '', '#gallery');
+    }, []);
+
+    const closeGallery = useCallback(() => {
+        // If the hash is #gallery, hit back to remove it and trigger popstate
+        if (window.location.hash === '#gallery') {
+            window.history.back();
+        } else {
+            setIsGalleryOpen(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        const handlePopState = () => {
+            // When URL changes (e.g., user hits back), if no #gallery hash, close gallery
+            if (window.location.hash !== '#gallery') {
+                setIsGalleryOpen(false);
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
+
     // Scroll Animations
     const { scrollY } = useScroll();
 
@@ -138,8 +168,10 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
 
             {/* Backdrop Carousel */}
             <motion.div
-                className="absolute inset-x-0 top-0 h-[80%] md:h-[90%] z-0"
+                className="absolute inset-x-0 top-0 h-[80%] md:h-[90%] z-0 select-none cursor-pointer pointer-events-auto"
                 style={{ opacity: bannerOpacity, y: bannerY }}
+                onDoubleClick={openGallery}
+                title="Double click to view full gallery"
             >
                 <div className="overflow-hidden h-full w-full" ref={emblaRef}>
                     <div className="flex h-full w-full touch-pan-y">
@@ -330,6 +362,15 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                     </div>
                 </motion.div>
             </div>
+
+            {/* Fullscreen Gallery Form */}
+            {isGalleryOpen && backdropImages.length > 0 && (
+                <BackdropGallery
+                    images={backdropImages}
+                    initialIndex={selectedIndex}
+                    onClose={closeGallery}
+                />
+            )}
         </div>
     );
 }
