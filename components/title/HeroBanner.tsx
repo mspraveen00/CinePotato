@@ -29,7 +29,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
     } = titleDetail;
 
     // Helper function to generate Rotten Tomatoes URL
-    const getRottenTomatoesUrl = (titleStr: string, type: 'movie' | 'tv') => {
+    const getRottenTomatoesUrl = (titleStr: string, type?: 'movie' | 'tv' | 'game') => {
         // Remove years in parentheses if they exist at the end e.g. "Title (2024)"
         let cleanTitle = titleStr.replace(/\(\d{4}\)$/, '').trim();
 
@@ -347,7 +347,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                         {/* Rotten Tomatoes */}
                         {omdbRatings?.rottenTomatoes && (
                             <a
-                                href={omdbRatings.rottenTomatoesUrl || getRottenTomatoesUrl(title, mediaType || 'movie')}
+                                href={omdbRatings.rottenTomatoesUrl || getRottenTomatoesUrl(title, mediaType)}
                                 target="_blank" rel="noopener noreferrer"
                                 className="flex items-center gap-1 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer"
                                 title="View on Rotten Tomatoes"
