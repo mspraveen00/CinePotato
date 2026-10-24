@@ -136,8 +136,8 @@ export function WideCard({ item, actions, variant = 'standard' }: WideCardProps)
             <div className="absolute top-2 right-2 z-20 flex items-center gap-1">
                 {/* User Rating */}
                 {item.rating_user !== undefined && (
-                    <div className={`flex items-center justify-center w-6 h-6 ${isCompact ? 'md:w-6 md:h-6 md:text-xs' : 'md:w-8 md:h-8 md:text-sm'} text-[10px] rounded-full bg-primary/20 border-2 border-primary text-primary font-bold shadow-lg shadow-primary/20 backdrop-blur-md`}>
-                        {item.rating_user}
+                    <div className={`flex items-center justify-center px-1.5 h-6 min-w-[24px] ${isCompact ? 'md:h-6 md:min-w-[24px] md:text-[11px]' : 'md:h-7 md:min-w-[30px] md:text-xs'} text-[10px] rounded-full bg-primary/20 border-2 border-primary text-primary font-bold font-mono shadow-lg shadow-primary/20 backdrop-blur-md`}>
+                        {typeof item.rating_user === 'number' ? (Number.isInteger(item.rating_user) ? item.rating_user : item.rating_user.toFixed(1)) : item.rating_user}
                     </div>
                 )}
 

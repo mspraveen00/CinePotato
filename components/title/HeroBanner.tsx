@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 import { getResizedImage } from '@/lib/image-utils';
 import { IMDbIcon, TMDBLogo, MetacriticIcon, RottenTomatoesIcon, IGDBIcon } from '@/components/user/RatingIcons';
 import BackdropGallery from './BackdropGallery';
+import { useUserLists } from '@/lib/store/user-lists-store';
+import RatingModal, { getRatingTier } from '@/components/rating/RatingModal';
 
 export default function HeroBanner({ titleDetail }: HeroBannerProps) {
     const {
@@ -62,6 +64,12 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
             setPosterIndex((prev) => (prev + 1) % posters.length);
         }
     };
+
+    // User Rating State & Integration
+    const { getUserRating, setUserRating, removeUserRating } = useUserLists();
+    const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+    const userRating = getUserRating(id);
+    const userRatingTier = userRating !== undefined ? getRatingTier(userRating) : null;
 
     // Embla Carousel
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
@@ -366,17 +374,75 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                         <div className="w-px h-4 md:h-5 bg-neutral-600" />
 
                         {/* Rate Button */}
-                        <button
-                            className="flex items-center gap-1 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer"
-                            title="Rate this title"
-                            onClick={() => { /* TODO: Implement user rating */ }}
-                        >
-                            <Star size={14} className="text-amber-400 md:w-[18px] md:h-[18px]" />
-                            <span className="text-white font-semibold text-xs md:text-base">Rate</span>
-                        </button>
+                        {userRating !== undefined ? (
+                            <button
+                                className="flex items-center gap-1 md:gap-1.5 px-2.5 py-0.5 md:py-1 rounded-full border transition-all cursor-pointer group/rate hover:scale-105 active:scale-95"
+                                style={{
+                                    borderColor: userRatingTier?.color || '#f59e0b',
+                                    backgroundColor: `${userRatingTier?.color}20`,
+                                    boxShadow: `0 0 12px ${userRatingTier?.glowColor}`
+                                }}
+                                title={`Your rating: ${userRating.toFixed(1)}/10. Click to change`}
+                                onClick={() => setIsRatingModalOpen(true)}
+                            >
+                                <Star
+                                    size={14}
+                                    className="md:w-4 md:h-4 fill-current transition-transform group-hover/rate:scale-110"
+                                    style={{ color: userRatingTier?.color || '#f59e0b' }}
+                                />
+                                <span
+                                    className="font-extrabold text-xs md:text-sm font-mono tracking-tight"
+                                    style={{ color: userRatingTier?.color || '#f59e0b' }}
+                                >
+                                    {userRating.toFixed(1)}
+                                </span>
+                                <span className="text-[10px] md:text-xs text-neutral-400 font-medium">
+                                    You
+                                </span>
+                            </button>
+                        ) : (
+                            <button
+                                className="flex items-center gap-1 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer group/rate"
+                                title="Rate this title"
+                                onClick={() => setIsRatingModalOpen(true)}
+                            >
+                                <Star size={14} className="text-amber-400 md:w-[18px] md:h-[18px] transition-transform group-hover/rate:scale-110" />
+                                <span className="text-white group-hover/rate:text-amber-400 font-semibold text-xs md:text-base">Rate</span>
+                            </button>
+                        )}
                     </div>
                 </motion.div>
             </div>
+
+            {/* Rating Modal (Precision Radial Dial) */}
+            <RatingModal
+                isOpen={isRatingModalOpen}
+                onClose={() => setIsRatingModalOpen(false)}
+                title={title}
+                mediaType={mediaType}
+                posterPath={currentPoster || posterPath}
+                releaseYear={releaseYear}
+                currentRating={userRating}
+                imdbRating={omdbRatings?.imdb}
+                tmdbRating={rating ? rating.toFixed(1) : undefined}
+                onSaveRating={(newRating) => {
+                    setUserRating({
+                        id,
+                        title,
+                        poster_path: posterPath,
+                        backdrop_path: backdropImages?.[0],
+                        media_type: mediaType === 'game' ? 'game' : (mediaType || 'movie'),
+                        release_year: releaseYear,
+                        runtime_or_episodes: runtime,
+                        rating_imdb: omdbRatings?.imdb ? parseFloat(omdbRatings.imdb) : undefined,
+                        rating_tmdb: rating,
+                        genres
+                    }, newRating);
+                }}
+                onRemoveRating={() => {
+                    removeUserRating(id);
+                }}
+            />
 
             {/* Fullscreen Gallery Form */}
             {isGalleryOpen && backdropImages.length > 0 && (

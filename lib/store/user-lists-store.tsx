@@ -66,6 +66,26 @@ interface UserListsContextType {
     // View & Filter Actions
     setListViewMode: (listId: string, mode: ViewMode) => void;
     setListFilters: (listId: string, filters: Partial<FilterState>) => void;
+
+    // Rating Actions
+    getUserRating: (itemId: number | string) => number | undefined;
+    setUserRating: (item: {
+        id: number | string;
+        title: string;
+        poster_path?: string;
+        backdrop_path?: string;
+        media_type?: MediaType;
+        release_year?: number;
+        runtime_or_episodes?: string;
+        content_rating?: string;
+        rating_imdb?: number;
+        rating_metacritic?: number;
+        rating_rotten_tomatoes?: number;
+        rating_popcornmeter?: number;
+        rating_tmdb?: number;
+        genres?: string[];
+    }, rating: number) => void;
+    removeUserRating: (itemId: number | string) => void;
 }
 
 // --- Mock Data ---
@@ -349,6 +369,118 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
         }));
     };
 
+    const getUserRating = (itemId: number | string): number | undefined => {
+        const numId = typeof itemId === 'string' ? parseInt(itemId, 10) : itemId;
+        const ratingsList = lists.find(l => l.id === 'ratings');
+        const ratedItem = ratingsList?.items.find(i => i.id === numId || String(i.id) === String(itemId));
+        if (ratedItem && ratedItem.rating_user !== undefined) {
+            return ratedItem.rating_user;
+        }
+        for (const list of lists) {
+            const found = list.items.find(i => i.id === numId || String(i.id) === String(itemId));
+            if (found && found.rating_user !== undefined) {
+                return found.rating_user;
+            }
+        }
+        return undefined;
+    };
+
+    const setUserRating = (
+        itemData: {
+            id: number | string;
+            title: string;
+            poster_path?: string;
+            backdrop_path?: string;
+            media_type?: MediaType;
+            release_year?: number;
+            runtime_or_episodes?: string;
+            content_rating?: string;
+            rating_imdb?: number;
+            rating_metacritic?: number;
+            rating_rotten_tomatoes?: number;
+            rating_popcornmeter?: number;
+            rating_tmdb?: number;
+            genres?: string[];
+        },
+        rating: number
+    ) => {
+        const numId = typeof itemData.id === 'string' ? parseInt(itemData.id, 10) : itemData.id;
+        const cleanRating = Math.round(rating * 10) / 10;
+
+        setLists(prev => {
+            return prev.map(list => {
+                if (list.id === 'ratings') {
+                    const existingIndex = list.items.findIndex(i => i.id === numId || String(i.id) === String(itemData.id));
+                    if (existingIndex !== -1) {
+                        const updatedItems = [...list.items];
+                        updatedItems[existingIndex] = {
+                            ...updatedItems[existingIndex],
+                            rating_user: cleanRating,
+                            poster_path: itemData.poster_path || updatedItems[existingIndex].poster_path,
+                            backdrop_path: itemData.backdrop_path || updatedItems[existingIndex].backdrop_path,
+                            added_at: Date.now()
+                        };
+                        return { ...list, items: updatedItems };
+                    } else {
+                        const newItem: ListItem = {
+                            id: numId,
+                            title: itemData.title,
+                            poster_path: itemData.poster_path || '',
+                            backdrop_path: itemData.backdrop_path,
+                            media_type: itemData.media_type || 'movie',
+                            release_year: itemData.release_year,
+                            runtime_or_episodes: itemData.runtime_or_episodes,
+                            content_rating: itemData.content_rating,
+                            rating_imdb: itemData.rating_imdb,
+                            rating_metacritic: itemData.rating_metacritic,
+                            rating_rotten_tomatoes: itemData.rating_rotten_tomatoes,
+                            rating_popcornmeter: itemData.rating_popcornmeter,
+                            rating_tmdb: itemData.rating_tmdb,
+                            rating_user: cleanRating,
+                            genres: itemData.genres,
+                            added_at: Date.now()
+                        };
+                        return { ...list, items: [newItem, ...list.items] };
+                    }
+                } else {
+                    const hasItem = list.items.some(i => i.id === numId || String(i.id) === String(itemData.id));
+                    if (!hasItem) return list;
+                    return {
+                        ...list,
+                        items: list.items.map(i =>
+                            (i.id === numId || String(i.id) === String(itemData.id))
+                                ? { ...i, rating_user: cleanRating }
+                                : i
+                        )
+                    };
+                }
+            });
+        });
+    };
+
+    const removeUserRating = (itemId: number | string) => {
+        const numId = typeof itemId === 'string' ? parseInt(itemId, 10) : itemId;
+        setLists(prev => {
+            return prev.map(list => {
+                if (list.id === 'ratings') {
+                    return {
+                        ...list,
+                        items: list.items.filter(i => i.id !== numId && String(i.id) !== String(itemId))
+                    };
+                } else {
+                    return {
+                        ...list,
+                        items: list.items.map(i =>
+                            (i.id === numId || String(i.id) === String(itemId))
+                                ? { ...i, rating_user: undefined }
+                                : i
+                        )
+                    };
+                }
+            });
+        });
+    };
+
     if (!isLoaded) {
         return null; // Or a loading spinner preventing hydration mismatch
     }
@@ -364,7 +496,10 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
             setListFilters,
             moveItem,
             copyItem,
-            updateListOrder
+            updateListOrder,
+            getUserRating,
+            setUserRating,
+            removeUserRating
         }}>
             {children}
         </UserListsContext.Provider>

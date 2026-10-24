@@ -26,13 +26,18 @@ export function PosterCard({ item, actions }: PosterCardProps) {
                     </div>
                 )}
 
-                {/* IMDb Rating Badge */}
-                {item.rating_imdb && (
+                {/* Rating Badge (User rating prioritized or IMDb) */}
+                {item.rating_user !== undefined ? (
+                    <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/75 border border-primary/50 backdrop-blur-md px-1.5 py-0.5 rounded text-xs text-primary font-bold z-10 font-mono shadow-md">
+                        <Star className="w-3 h-3 text-primary fill-primary" />
+                        {item.rating_user.toFixed(1)}
+                    </div>
+                ) : item.rating_imdb ? (
                     <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded text-xs text-white font-medium z-10">
                         <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                         {item.rating_imdb.toFixed(1)}
                     </div>
-                )}
+                ) : null}
 
                 {/* Actions Menu */}
 
