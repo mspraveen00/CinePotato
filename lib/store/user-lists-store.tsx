@@ -1,6 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useRef } from 'react';
+import { createClient } from '@/utils/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 // --- Types ---
 
@@ -53,6 +55,8 @@ export interface UserList {
 
 interface UserListsContextType {
     lists: UserList[];
+    isSyncing: boolean;
+    syncWithCloud: () => Promise<void>;
     createList: (name: string) => void;
     renameList: (id: string, newName: string) => void;
     deleteList: (id: string) => void;
@@ -243,28 +247,131 @@ const INITIAL_LISTS: UserList[] = [
 const UserListsContext = createContext<UserListsContextType | undefined>(undefined);
 
 export function UserListsProvider({ children }: { children: ReactNode }) {
+    const { user } = useAuth();
     const [lists, setLists] = useState<UserList[]>(INITIAL_LISTS);
     const [isLoaded, setIsLoaded] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
+    const isInitialCloudFetchDone = useRef(false);
 
-    // Persistence Load
+    const supabase = createClient();
+
+    // 1. Load from localStorage initially
     useEffect(() => {
         const saved = localStorage.getItem('userLists');
         if (saved) {
             try {
                 setLists(JSON.parse(saved));
             } catch (e) {
-                console.error("Failed to load lists", e);
+                console.error("Failed to load lists from localStorage", e);
             }
         }
         setIsLoaded(true);
     }, []);
 
-    // Persistence Save
+    // 2. Fetch from Supabase when user logs in
     useEffect(() => {
-        if (isLoaded) {
-            localStorage.setItem('userLists', JSON.stringify(lists));
+        if (!user) {
+            isInitialCloudFetchDone.current = false;
+            return;
         }
-    }, [lists, isLoaded]);
+
+        const fetchUserListsFromSupabase = async () => {
+            setIsSyncing(true);
+            try {
+                const { data, error } = await supabase
+                    .from('user_lists')
+                    .select('*')
+                    .eq('user_id', user.id);
+
+                if (error) {
+                    console.warn("Supabase user_lists table query:", error.message);
+                } else if (data && data.length > 0) {
+                    // Map database records into UserList shape
+                    const cloudLists: UserList[] = data.map((row: any) => ({
+                        id: row.id,
+                        name: row.name,
+                        type: row.type || 'custom',
+                        description: row.description || '',
+                        viewMode: row.view_mode || 'wide',
+                        filters: row.filters || DEFAULT_FILTERS,
+                        items: Array.isArray(row.items) ? row.items : []
+                    }));
+
+                    // Ensure all system lists exist even if user doesn't have them yet
+                    const systemListIds = ['ratings', 'favourites', 'bucketlist'];
+                    const mergedLists = [...cloudLists];
+                    for (const sysId of systemListIds) {
+                        if (!mergedLists.some(l => l.id === sysId)) {
+                            const defaultSysList = INITIAL_LISTS.find(l => l.id === sysId);
+                            if (defaultSysList) {
+                                mergedLists.push({ ...defaultSysList, items: [] });
+                            }
+                        }
+                    }
+
+                    setLists(mergedLists);
+                } else {
+                    // First time login with no cloud lists yet: upload current local lists
+                    await uploadListsToCloud(lists, user.id);
+                }
+            } catch (err) {
+                console.error("Error fetching lists from Supabase:", err);
+            } finally {
+                setIsSyncing(false);
+                isInitialCloudFetchDone.current = true;
+            }
+        };
+
+        fetchUserListsFromSupabase();
+    }, [user?.id]);
+
+    // Helper: Upload lists to Supabase
+    const uploadListsToCloud = async (listsToUpload: UserList[], userId: string) => {
+        try {
+            const rows = listsToUpload.map(list => ({
+                id: list.id,
+                user_id: userId,
+                name: list.name,
+                type: list.type,
+                description: list.description || '',
+                view_mode: list.viewMode || 'wide',
+                filters: list.filters || DEFAULT_FILTERS,
+                items: list.items || [],
+                updated_at: new Date().toISOString()
+            }));
+
+            const { error } = await supabase
+                .from('user_lists')
+                .upsert(rows, { onConflict: 'user_id,id' });
+
+            if (error) {
+                console.warn("Could not save to Supabase user_lists:", error.message);
+            }
+        } catch (err) {
+            console.error("Cloud save failed:", err);
+        }
+    };
+
+    // 3. Save to localStorage & Cloud whenever lists change
+    useEffect(() => {
+        if (!isLoaded) return;
+
+        localStorage.setItem('userLists', JSON.stringify(lists));
+
+        if (user && isInitialCloudFetchDone.current) {
+            const timeout = setTimeout(() => {
+                uploadListsToCloud(lists, user.id);
+            }, 800); // Debounce cloud sync
+            return () => clearTimeout(timeout);
+        }
+    }, [lists, isLoaded, user?.id]);
+
+    const syncWithCloud = async () => {
+        if (!user) return;
+        setIsSyncing(true);
+        await uploadListsToCloud(lists, user.id);
+        setIsSyncing(false);
+    };
 
     const createList = (name: string) => {
         const newList: UserList = {
@@ -488,6 +595,8 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
     return (
         <UserListsContext.Provider value={{
             lists,
+            isSyncing,
+            syncWithCloud,
             createList,
             renameList,
             deleteList,

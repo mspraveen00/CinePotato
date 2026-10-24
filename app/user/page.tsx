@@ -4,11 +4,13 @@ import React from 'react';
 import { useUserLists } from '@/lib/store/user-lists-store';
 import { SystemListPreview } from '@/components/user/SystemListPreview';
 import { CreateListButton } from '@/components/user/CreateListButton';
-import { Trash2, Edit2, Folder } from 'lucide-react';
+import { Trash2, Edit2, Folder, UserCheck, LogIn } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function UserPage() {
+    const { user, openAuthModal } = useAuth();
     const { lists, createList, deleteList, renameList } = useUserLists();
     const router = useRouter();
 
@@ -41,8 +43,32 @@ export default function UserPage() {
         <div className="min-h-screen bg-black text-white pb-24 space-y-12 pt-8">
             {/* Header */}
             <div className="flex items-center justify-between px-4 md:px-8">
-                <h1 className="text-3xl font-bold">My Library</h1>
-                <CreateListButton onClick={handleCreateList} />
+                <div>
+                    <h1 className="text-3xl font-bold">My Library</h1>
+                    <p className="text-xs text-neutral-400 mt-1">
+                        {user ? 'Synced to your cloud account' : 'Saved in browser cache'}
+                    </p>
+                </div>
+                <div className="flex items-center gap-3">
+                    {!user ? (
+                        <button
+                            onClick={openAuthModal}
+                            className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-2 text-xs font-semibold text-amber-400 hover:bg-amber-500/20 transition active:scale-95"
+                        >
+                            <LogIn size={14} />
+                            Sign In to Sync
+                        </button>
+                    ) : (
+                        <Link
+                            href="/account"
+                            className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-medium text-white hover:bg-white/10 transition"
+                        >
+                            <UserCheck size={14} className="text-emerald-400" />
+                            Account
+                        </Link>
+                    )}
+                    <CreateListButton onClick={handleCreateList} />
+                </div>
             </div>
 
             {/* System Lists */}
