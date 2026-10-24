@@ -1,4 +1,5 @@
-import { TitleDetail } from '@/types/title';
+import { TitleDetail, OMDbRatings } from '@/types/title';
+import { fetchOMDb } from '@/lib/api/omdb';
 
 interface IGDBArtwork {
     image_id: string;
@@ -80,6 +81,49 @@ export async function getGameDetail(id: string): Promise<TitleDetail | null> {
             backdropImages = [...logoBackdrops];
         }
 
+        // Fetch OMDb ratings (IMDb + Metacritic + RT) using game title
+        let omdbRatings: OMDbRatings | undefined;
+        let imdbId: string | undefined;
+        try {
+            const releaseYear = game.first_release_date
+                ? new Date(game.first_release_date * 1000).getFullYear()
+                : undefined;
+
+            const omdbData = await fetchOMDb<any>({
+                t: game.name,
+                tomatoes: 'true',
+                ...(releaseYear ? { y: String(releaseYear) } : {}),
+            });
+
+            console.log(`[Game OMDb] Search for "${game.name}":`, omdbData?.Response, omdbData?.imdbID || 'no ID');
+
+            if (omdbData && omdbData.Response === 'True') {
+                imdbId = omdbData.imdbID;
+                omdbRatings = {};
+                if (omdbData.imdbRating && omdbData.imdbRating !== 'N/A') {
+                    omdbRatings.imdb = omdbData.imdbRating;
+                }
+                if (omdbData.Metascore && omdbData.Metascore !== 'N/A') {
+                    omdbRatings.metacritic = omdbData.Metascore;
+                }
+                if (omdbData.Ratings && Array.isArray(omdbData.Ratings)) {
+                    const rottenTomatoes = omdbData.Ratings.find((r: any) => r.Source === 'Rotten Tomatoes');
+                    if (rottenTomatoes && rottenTomatoes.Value) {
+                        omdbRatings.rottenTomatoes = rottenTomatoes.Value;
+                    }
+                }
+                if (omdbData.tomatoURL && omdbData.tomatoURL !== 'N/A') {
+                    omdbRatings.rottenTomatoesUrl = omdbData.tomatoURL;
+                }
+                // If no ratings were actually found, unset
+                if (!omdbRatings.imdb && !omdbRatings.metacritic && !omdbRatings.rottenTomatoes) {
+                    omdbRatings = undefined;
+                }
+            }
+        } catch (error) {
+            console.error(`[Game OMDb] Failed to fetch OMDb ratings for "${game.name}":`, error);
+        }
+
         return {
             id: String(game.id),
             title: game.name,
@@ -92,14 +136,14 @@ export async function getGameDetail(id: string): Promise<TitleDetail | null> {
                 ? new Date(game.first_release_date * 1000).getFullYear()
                 : 0,
             runtime: "N/A",
-            // Involved companies -> map to "Publisher / Developer" if needed, 
-            // for now just mapping to genres as UI expects genres for the chips.
-            // We could map companies to a new field if TitleDetail supported it.
-            // UI uses `genres` for the main chips.
             genres: (game.genres || []).map(g => g.name),
             rating: game.total_rating ? parseFloat((game.total_rating / 10).toFixed(1)) : 0,
-            logos: logos.length > 0 ? logos : undefined
+            logos: logos.length > 0 ? logos : undefined,
+            omdbRatings,
+            imdbId,
+            mediaType: 'game',
         };
+
 
     } catch (error) {
         console.error("Game Detail Service Error:", error);

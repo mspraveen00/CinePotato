@@ -49,6 +49,17 @@ export const RottenTomatoesIcon = ({ className, fresh = true }: { className?: st
     </div>
 );
 
+export const IGDBIcon = ({ className }: { className?: string }) => (
+    <div className={`flex items-center justify-center ${className}`}>
+        <span
+            style={{ background: 'linear-gradient(135deg, #9147ff 0%, #4f46e5 100%)', fontSize: '0.6em', letterSpacing: '0.05em' }}
+            className="font-black text-white rounded px-1 py-0.5 select-none"
+        >
+            IGDB
+        </span>
+    </div>
+);
+
 export const PopcornIcon = ({ className, fresh = true }: { className?: string, fresh?: boolean }) => (
     <div className={`relative ${className}`}>
         <Image

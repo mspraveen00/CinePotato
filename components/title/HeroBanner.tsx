@@ -7,7 +7,7 @@ import { MoreVertical, Star } from 'lucide-react';
 import { HeroBannerProps } from '@/types/title';
 import { cn } from '@/lib/utils';
 import { getResizedImage } from '@/lib/image-utils';
-import { IMDbIcon, TMDBLogo, MetacriticIcon, RottenTomatoesIcon } from '@/components/user/RatingIcons';
+import { IMDbIcon, TMDBLogo, MetacriticIcon, RottenTomatoesIcon, IGDBIcon } from '@/components/user/RatingIcons';
 import BackdropGallery from './BackdropGallery';
 
 export default function HeroBanner({ titleDetail }: HeroBannerProps) {
@@ -316,9 +316,24 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                             </a>
                         )}
 
-                        {/* TMDB */}
+                        {/* IGDB (games only) */}
+                        {mediaType === 'game' && (
+                            <a
+                                href={`https://www.igdb.com/games/${encodeURIComponent(title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''))}`}
+                                target="_blank" rel="noopener noreferrer"
+                                className="flex items-center gap-1 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+                                title="View on IGDB"
+                            >
+                                <IGDBIcon className="w-10 h-4 md:w-14 md:h-5" />
+                                <span className="text-white font-semibold text-xs md:text-base">
+                                    {rating.toFixed(1)}
+                                </span>
+                            </a>
+                        )}
+
+                        {/* TMDB (always shown) */}
                         <a
-                            href={`https://www.themoviedb.org/${mediaType || 'movie'}/${id}`}
+                            href={`https://www.themoviedb.org/${mediaType === 'game' ? 'movie' : (mediaType || 'movie')}/${id}`}
                             target="_blank" rel="noopener noreferrer"
                             className="flex items-center gap-1 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer"
                             title="View on TMDB"

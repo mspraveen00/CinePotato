@@ -73,5 +73,5 @@ export interface TitleDetail {
     episodeGroups?: EpisodeGroupList[];
     omdbRatings?: OMDbRatings;
     imdbId?: string;
-    mediaType?: 'movie' | 'tv';
+    mediaType?: 'movie' | 'tv' | 'game';
 }
