@@ -114,6 +114,46 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
         return () => window.removeEventListener('popstate', handlePopState);
     }, []);
 
+    // Keyboard navigation for backdrops (Left/Right Arrow keys)
+    useEffect(() => {
+        if (!emblaApi || !backdropImages || backdropImages.length <= 1) return;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Ignore if modifier keys are pressed (e.g. Alt+Left for browser navigation)
+            if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+
+            // Don't intercept when modal or full gallery is open
+            if (isGalleryOpen || isRatingModalOpen) return;
+
+            // Don't intercept if an interactive modal/dialog is present
+            if (document.querySelector('[role="dialog"]')) return;
+
+            // Ignore when typing in input/textarea/select/editable elements
+            const target = e.target as HTMLElement | null;
+            if (
+                target &&
+                (target.tagName === 'INPUT' ||
+                    target.tagName === 'TEXTAREA' ||
+                    target.tagName === 'SELECT' ||
+                    target.isContentEditable ||
+                    target.closest('input, textarea, select, [contenteditable="true"]'))
+            ) {
+                return;
+            }
+
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                emblaApi.scrollPrev();
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                emblaApi.scrollNext();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [emblaApi, backdropImages, isGalleryOpen, isRatingModalOpen]);
+
     // Scroll Animations
     const { scrollY } = useScroll();
 
@@ -179,7 +219,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                 className="absolute inset-x-0 top-0 h-[80%] md:h-[90%] z-0 select-none cursor-pointer pointer-events-auto"
                 style={{ opacity: bannerOpacity, y: bannerY }}
                 onDoubleClick={openGallery}
-                title="Double click to view full gallery"
+                title={backdropImages && backdropImages.length > 1 ? "Double click to view full gallery (← → arrow keys to switch)" : "Double click to view full gallery"}
             >
                 <div className="overflow-hidden h-full w-full" ref={emblaRef}>
                     <div className="flex h-full w-full touch-pan-y">
@@ -449,6 +489,9 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                 <BackdropGallery
                     images={backdropImages}
                     initialIndex={selectedIndex}
+                    onIndexChange={(idx) => {
+                        if (emblaApi) emblaApi.scrollTo(idx, true);
+                    }}
                     onClose={closeGallery}
                 />
             )}

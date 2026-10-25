@@ -9,13 +9,19 @@ interface BackdropGalleryProps {
     images: string[];
     initialIndex: number;
     onClose: () => void;
+    onIndexChange?: (index: number) => void;
 }
 
-export default function BackdropGallery({ images, initialIndex, onClose }: BackdropGalleryProps) {
+export default function BackdropGallery({ images, initialIndex, onClose, onIndexChange }: BackdropGalleryProps) {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
+
+    // Sync active index back to parent if requested
+    useEffect(() => {
+        onIndexChange?.(currentIndex);
+    }, [currentIndex, onIndexChange]);
 
     // Auto-scroll to center active thumbnail
     useEffect(() => {
@@ -52,8 +58,10 @@ export default function BackdropGallery({ images, initialIndex, onClose }: Backd
             if (e.key === 'Escape') {
                 onClose();
             } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
                 handlePrevious();
             } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
                 handleNext();
             }
         };
