@@ -295,7 +295,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                         style={{ opacity: contentOpacity, y: contentY }}
                     >
                         {/* Title / Logo & Tagline Lockup */}
-                        <div className="mb-3 md:mb-4 relative -top-3 md:top-0 w-fit max-w-full flex flex-col items-start md:items-center">
+                        <div className="mb-3 md:mb-4 relative -top-3 md:top-0 w-fit max-w-full flex flex-col items-center">
                             {currentLogo ? (
                                 <div
                                     className="relative h-14 sm:h-20 md:h-32 select-none cursor-pointer pointer-events-auto"
@@ -304,20 +304,20 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                                     <img
                                         src={getResizedImage(currentLogo, "logo")}
                                         alt={title}
-                                        className="h-full w-auto max-w-[190px] sm:max-w-[260px] md:max-w-[440px] object-contain object-left md:object-center pointer-events-none"
+                                        className="h-full w-auto max-w-[190px] sm:max-w-[260px] md:max-w-[440px] object-contain object-center pointer-events-none"
                                         loading="eager"
                                         fetchPriority="high"
                                     />
                                 </div>
                             ) : (
-                                <h1 className="text-2xl sm:text-3xl md:text-6xl font-black text-white tracking-tight drop-shadow-xl mb-1 text-left md:text-center">
+                                <h1 className="text-2xl sm:text-3xl md:text-6xl font-black text-white tracking-tight drop-shadow-xl mb-1 text-center">
                                     {title}
                                 </h1>
                             )}
 
                             {/* Tagline */}
                             {tagline && (
-                                <p className="font-serif italic text-xs sm:text-sm md:text-lg text-neutral-300/90 tracking-wide drop-shadow-md mt-1.5 md:mt-2 text-left md:text-center max-w-[200px] sm:max-w-[280px] md:max-w-full leading-snug">
+                                <p className="font-serif italic text-sm sm:text-base md:text-lg text-neutral-300/90 tracking-wide drop-shadow-md mt-1.5 md:mt-2 text-center max-w-[190px] sm:max-w-[260px] md:max-w-full leading-snug">
                                     &ldquo;{tagline}&rdquo;
                                 </p>
                             )}
