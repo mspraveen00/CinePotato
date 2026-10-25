@@ -1,6 +1,6 @@
 import { fetchTMDB } from '@/lib/api/tmdb';
 import { fetchOMDb } from '@/lib/api/omdb';
-import { TitleDetail, CastMember, CrewMember, OMDbRatings } from '@/types/title';
+import { TitleDetail, CastMember, CrewMember, OMDbRatings, TrailerVideo, CollectionInfo } from '@/types/title';
 import { generateMockDetail, generateMockItems } from '@/lib/mock-data';
 
 interface TMDBMovie {
@@ -15,6 +15,55 @@ interface TMDBMovie {
     backdrop_path: string;
     original_language: string;
     imdb_id: string | null;
+    tagline: string | null;
+    belongs_to_collection: {
+        id: number;
+        name: string;
+        poster_path: string | null;
+        backdrop_path: string | null;
+    } | null;
+}
+
+interface TMDBVideoResult {
+    id: string;
+    key: string;
+    name: string;
+    site: string;
+    type: string;
+    official: boolean;
+    published_at: string;
+}
+
+interface TMDBVideosResponse {
+    results: TMDBVideoResult[];
+}
+
+interface TMDBReleaseDateEntry {
+    certification: string;
+    type: number; // 1=Premiere, 2=Limited, 3=Theatrical, 4=Digital, 5=Physical, 6=TV
+    release_date: string;
+}
+
+interface TMDBReleaseDatesResponse {
+    results: {
+        iso_3166_1: string;
+        release_dates: TMDBReleaseDateEntry[];
+    }[];
+}
+
+interface TMDBCollectionResponse {
+    id: number;
+    name: string;
+    poster_path: string | null;
+    backdrop_path: string | null;
+    parts: {
+        id: number;
+        title: string;
+        poster_path: string | null;
+        release_date: string | null;
+        overview: string;
+        vote_average: number;
+    }[];
 }
 
 interface TMDBImage {
@@ -67,8 +116,13 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
     try {
         console.log(`[Real Mode] Fetching Data for ID: ${id}`);
 
-        // 1. Fetch Movie Details with Images via append_to_response
-        const movie = await fetchTMDB<TMDBMovie & { images: TMDBImagesResponse, credits: TMDBCreditsResponse }>(`/movie/${id}?append_to_response=images,credits`);
+        // 1. Fetch Movie Details with Images, Credits, Videos, and Release Dates via append_to_response
+        const movie = await fetchTMDB<TMDBMovie & {
+            images: TMDBImagesResponse,
+            credits: TMDBCreditsResponse,
+            videos: TMDBVideosResponse,
+            release_dates: TMDBReleaseDatesResponse
+        }>(`/movie/${id}?append_to_response=images,credits,videos,release_dates`);
         const images = movie.images || { backdrops: [], logos: [], posters: [] };
 
         // 2. Logo Logic
@@ -223,7 +277,91 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
             }
         }
 
-        // 7. Transform to Domain Model
+        // 7. Trailer Logic — prioritize official YouTube trailers, then teasers, then clips
+        const trailerTypeOrder = ['Trailer', 'Teaser', 'Clip', 'Featurette', 'Behind the Scenes'];
+        const trailers: TrailerVideo[] = (movie.videos?.results || [])
+            .filter(v => v.site === 'YouTube')
+            .sort((a, b) => {
+                // Official first
+                if (a.official !== b.official) return a.official ? -1 : 1;
+                // Then by type priority
+                const aIdx = trailerTypeOrder.indexOf(a.type);
+                const bIdx = trailerTypeOrder.indexOf(b.type);
+                const aPriority = aIdx === -1 ? 999 : aIdx;
+                const bPriority = bIdx === -1 ? 999 : bIdx;
+                if (aPriority !== bPriority) return aPriority - bPriority;
+                // Newer first
+                return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
+            })
+            .slice(0, 5)
+            .map(v => ({
+                id: v.id,
+                key: v.key,
+                name: v.name,
+                site: v.site,
+                type: v.type,
+                official: v.official,
+            }));
+
+        // 8. Certification Logic — get US rating, fallback to IN, then GB
+        let certification: string | undefined;
+        const certPriorityCountries = ['US', 'IN', 'GB', 'AU', 'CA'];
+        const releaseDatesResults = movie.release_dates?.results || [];
+
+        for (const country of certPriorityCountries) {
+            if (certification) break;
+            const countryData = releaseDatesResults.find(r => r.iso_3166_1 === country);
+            if (countryData) {
+                // Prefer theatrical (type 3), then any with a certification
+                const theatrical = countryData.release_dates.find(rd => rd.type === 3 && rd.certification);
+                const anyWithCert = countryData.release_dates.find(rd => rd.certification);
+                const entry = theatrical || anyWithCert;
+                if (entry?.certification) {
+                    certification = entry.certification;
+                }
+            }
+        }
+
+        // 9. Collection/Franchise Logic
+        let collection: CollectionInfo | undefined;
+        if (movie.belongs_to_collection) {
+            try {
+                const collectionData = await fetchTMDB<TMDBCollectionResponse>(
+                    `/collection/${movie.belongs_to_collection.id}`
+                );
+                collection = {
+                    id: collectionData.id,
+                    name: collectionData.name,
+                    posterPath: collectionData.poster_path
+                        ? `https://image.tmdb.org/t/p/w500${collectionData.poster_path}`
+                        : null,
+                    backdropPath: collectionData.backdrop_path
+                        ? `https://image.tmdb.org/t/p/original${collectionData.backdrop_path}`
+                        : null,
+                    parts: collectionData.parts
+                        .sort((a, b) => {
+                            // Sort by release date ascending
+                            if (!a.release_date) return 1;
+                            if (!b.release_date) return -1;
+                            return new Date(a.release_date).getTime() - new Date(b.release_date).getTime();
+                        })
+                        .map(p => ({
+                            id: p.id,
+                            title: p.title,
+                            posterPath: p.poster_path
+                                ? `https://image.tmdb.org/t/p/w500${p.poster_path}`
+                                : null,
+                            releaseDate: p.release_date,
+                            overview: p.overview,
+                            rating: parseFloat(p.vote_average.toFixed(1)),
+                        })),
+                };
+            } catch (collError) {
+                console.error(`Failed to fetch collection for movie ${id}:`, collError);
+            }
+        }
+
+        // 10. Transform to Domain Model
         return {
             id: String(movie.id),
             title: movie.title,
@@ -245,6 +383,10 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
             omdbRatings,
             imdbId: movie.imdb_id || undefined,
             mediaType: 'movie',
+            trailers: trailers.length > 0 ? trailers : undefined,
+            certification,
+            collection,
+            tagline: movie.tagline || undefined,
         };
 
     } catch (error) {

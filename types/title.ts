@@ -66,6 +66,32 @@ export interface KnownForCredit {
     voteCount?: number;
 }
 
+export interface TrailerVideo {
+    id: string;
+    key: string; // YouTube video key
+    name: string;
+    site: string; // "YouTube" etc.
+    type: string; // "Trailer", "Teaser", "Clip", etc.
+    official: boolean;
+}
+
+export interface CollectionInfo {
+    id: number;
+    name: string;
+    posterPath: string | null;
+    backdropPath: string | null;
+    parts: CollectionPart[];
+}
+
+export interface CollectionPart {
+    id: number;
+    title: string;
+    posterPath: string | null;
+    releaseDate: string | null;
+    overview: string;
+    rating: number;
+}
+
 export interface TitleDetail {
     id: string;
     title: string;
@@ -92,5 +118,10 @@ export interface TitleDetail {
     knownForDepartment?: string;
     gender?: string;
     profileImages?: string[];
+    // Phase 1 additions
+    trailers?: TrailerVideo[];
+    certification?: string; // e.g., "PG-13", "R", "U/A 16+"
+    collection?: CollectionInfo;
+    tagline?: string;
 }
 

@@ -3,12 +3,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
-import { MoreVertical, Star } from 'lucide-react';
+import { MoreVertical, Star, Play } from 'lucide-react';
 import { HeroBannerProps } from '@/types/title';
 import { cn } from '@/lib/utils';
 import { getResizedImage } from '@/lib/image-utils';
 import { IMDbIcon, TMDBLogo, MetacriticIcon, RottenTomatoesIcon, IGDBIcon } from '@/components/user/RatingIcons';
 import BackdropGallery from './BackdropGallery';
+import TrailerModal from './TrailerModal';
 import { useUserLists } from '@/lib/store/user-lists-store';
 import RatingModal, { getRatingTier } from '@/components/rating/RatingModal';
 
@@ -28,6 +29,9 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
         omdbRatings,
         imdbId,
         mediaType,
+        trailers,
+        certification,
+        tagline,
     } = titleDetail;
 
     // Helper function to generate Rotten Tomatoes URL
@@ -70,6 +74,10 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
     const userRating = getUserRating(id);
     const userRatingTier = userRating !== undefined ? getRatingTier(userRating) : null;
+
+    // Trailer Modal State
+    const [isTrailerOpen, setIsTrailerOpen] = useState(false);
+    const hasTrailers = trailers && trailers.length > 0;
 
     // Embla Carousel
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
@@ -286,30 +294,46 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                         className="flex-1 space-y-2 md:space-y-6 w-full"
                         style={{ opacity: contentOpacity, y: contentY }}
                     >
-                        {/* Title / Logo */}
-                        <div className="mb-2 md:mb-4 relative -top-3 md:top-0">
+                        {/* Title / Logo & Tagline Lockup */}
+                        <div className="mb-3 md:mb-4 relative -top-3 md:top-0 w-fit max-w-full flex flex-col items-center">
                             {currentLogo ? (
                                 <div
-                                    className="relative h-20 sm:h-24 md:h-32 w-48 sm:w-64 md:w-96 mb-2 md:mb-4 origin-left select-none cursor-pointer pointer-events-auto"
+                                    className="relative h-20 sm:h-24 md:h-32 select-none cursor-pointer pointer-events-auto"
                                     onDoubleClick={handleLogoDoubleClick}
                                 >
                                     <img
                                         src={getResizedImage(currentLogo, "logo")}
                                         alt={title}
-                                        className="absolute inset-0 w-full h-full object-contain object-left pointer-events-none"
+                                        className="h-full w-auto max-w-[280px] sm:max-w-[360px] md:max-w-[440px] object-contain pointer-events-none"
                                         loading="eager"
                                         fetchPriority="high"
                                     />
                                 </div>
                             ) : (
-                                <h1 className="text-2xl sm:text-3xl md:text-6xl font-black text-white tracking-tight drop-shadow-xl mb-2">
+                                <h1 className="text-2xl sm:text-3xl md:text-6xl font-black text-white tracking-tight drop-shadow-xl mb-1 text-center">
                                     {title}
                                 </h1>
+                            )}
+
+                            {/* Tagline */}
+                            {tagline && (
+                                <p className="font-serif italic text-sm sm:text-base md:text-lg text-neutral-300/90 tracking-wide drop-shadow-md mt-1.5 md:mt-2 text-center max-w-full">
+                                    &ldquo;{tagline}&rdquo;
+                                </p>
                             )}
                         </div>
 
                         {/* Metadata Row */}
                         <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs sm:text-sm md:text-base font-medium text-neutral-300">
+                            {/* Certification Badge */}
+                            {certification && (
+                                <>
+                                    <span className="bg-neutral-800/80 backdrop-blur-sm px-2 py-0.5 md:py-1 rounded text-neutral-200 border border-neutral-500/60 font-semibold text-[10px] sm:text-xs md:text-sm tracking-wide">
+                                        {certification}
+                                    </span>
+                                    <span className="w-1 h-1 bg-neutral-500 rounded-full" />
+                                </>
+                            )}
                             <span className="bg-neutral-800/80 backdrop-blur-sm px-2 py-1 rounded text-white border border-neutral-700">
                                 {releaseYear}
                             </span>
@@ -321,6 +345,20 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                                     <span key={g} className="text-neutral-200">{g}</span>
                                 ))}
                             </div>
+                            {/* Watch Trailer Button */}
+                            {hasTrailers && (
+                                <>
+                                    <span className="w-1 h-1 bg-neutral-500 rounded-full" />
+                                    <button
+                                        onClick={() => setIsTrailerOpen(true)}
+                                        className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm px-3 py-1 md:py-1.5 rounded-full text-white text-xs md:text-sm font-semibold transition-all duration-200 cursor-pointer group/trailer pointer-events-auto border border-white/10 hover:border-white/20"
+                                        title="Watch Trailer"
+                                    >
+                                        <Play size={12} className="md:w-[14px] md:h-[14px] fill-current group-hover/trailer:scale-110 transition-transform" />
+                                        <span>Trailer</span>
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </motion.div>
                 </div>
@@ -490,6 +528,16 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                         if (emblaApi) emblaApi.scrollTo(idx, true);
                     }}
                     onClose={closeGallery}
+                />
+            )}
+
+            {/* Trailer Modal */}
+            {hasTrailers && (
+                <TrailerModal
+                    isOpen={isTrailerOpen}
+                    onClose={() => setIsTrailerOpen(false)}
+                    trailers={trailers}
+                    title={title}
                 />
             )}
         </div>

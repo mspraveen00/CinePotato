@@ -1,6 +1,6 @@
 import { fetchTMDB } from '@/lib/api/tmdb';
 import { fetchOMDb } from '@/lib/api/omdb';
-import { TitleDetail, CastMember, CrewMember, OMDbRatings } from '@/types/title';
+import { TitleDetail, CastMember, CrewMember, OMDbRatings, TrailerVideo } from '@/types/title';
 import { generateMockTVDetail, generateMockItems } from '@/lib/mock-data';
 
 interface TMDBTVShow {
@@ -31,6 +31,27 @@ interface TMDBTVShow {
     external_ids: {
         imdb_id: string | null;
     };
+}
+
+interface TMDBVideoResult {
+    id: string;
+    key: string;
+    name: string;
+    site: string;
+    type: string;
+    official: boolean;
+    published_at: string;
+}
+
+interface TMDBVideosResponse {
+    results: TMDBVideoResult[];
+}
+
+interface TMDBContentRatingsResponse {
+    results: {
+        iso_3166_1: string;
+        rating: string;
+    }[];
 }
 
 interface TMDBImage {
@@ -82,7 +103,13 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
     try {
         console.log(`[Real Mode] Fetching TV Data for ID: ${id}`);
 
-        const tv = await fetchTMDB<TMDBTVShow & { images: TMDBImagesResponse, credits: TMDBCreditsResponse, episode_groups: { results: TMDBEpisodeGroupList[] } }>(`/tv/${id}?append_to_response=images,credits,episode_groups,external_ids`);
+        const tv = await fetchTMDB<TMDBTVShow & {
+            images: TMDBImagesResponse,
+            credits: TMDBCreditsResponse,
+            episode_groups: { results: TMDBEpisodeGroupList[] },
+            videos: TMDBVideosResponse,
+            content_ratings: TMDBContentRatingsResponse
+        }>(`/tv/${id}?append_to_response=images,credits,episode_groups,external_ids,videos,content_ratings`);
         const images = tv.images || { backdrops: [], logos: [], posters: [] };
 
         // Logo Logic
@@ -281,6 +308,42 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
             }
         }
 
+        // Trailer Logic — prioritize official YouTube trailers
+        const trailerTypeOrder = ['Trailer', 'Teaser', 'Clip', 'Featurette', 'Behind the Scenes'];
+        const trailers: TrailerVideo[] = (tv.videos?.results || [])
+            .filter(v => v.site === 'YouTube')
+            .sort((a, b) => {
+                if (a.official !== b.official) return a.official ? -1 : 1;
+                const aIdx = trailerTypeOrder.indexOf(a.type);
+                const bIdx = trailerTypeOrder.indexOf(b.type);
+                const aPriority = aIdx === -1 ? 999 : aIdx;
+                const bPriority = bIdx === -1 ? 999 : bIdx;
+                if (aPriority !== bPriority) return aPriority - bPriority;
+                return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
+            })
+            .slice(0, 5)
+            .map(v => ({
+                id: v.id,
+                key: v.key,
+                name: v.name,
+                site: v.site,
+                type: v.type,
+                official: v.official,
+            }));
+
+        // Certification Logic — TV uses content_ratings endpoint
+        let certification: string | undefined;
+        const certPriorityCountries = ['US', 'IN', 'GB', 'AU', 'CA'];
+        const contentRatingsResults = tv.content_ratings?.results || [];
+
+        for (const country of certPriorityCountries) {
+            if (certification) break;
+            const countryRating = contentRatingsResults.find(r => r.iso_3166_1 === country);
+            if (countryRating?.rating) {
+                certification = countryRating.rating;
+            }
+        }
+
         return {
             id: String(tv.id),
             title: tv.name, // Map name to title
@@ -302,6 +365,8 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
             omdbRatings,
             imdbId: tv.external_ids?.imdb_id || undefined,
             mediaType: 'tv',
+            trailers: trailers.length > 0 ? trailers : undefined,
+            certification,
         };
 
     } catch (error) {

@@ -3,6 +3,7 @@ import { getMovieDetail } from '@/lib/services/movie-service';
 import { notFound } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import CollectionSection from '@/components/title/CollectionSection';
 
 export const revalidate = 3600; // Cache for 1 hour
 
@@ -36,6 +37,14 @@ export default async function MoviePage({
                                 {titleDetail.overview}
                             </p>
                         </section>
+
+                        {/* Collection / Franchise */}
+                        {titleDetail.collection && (
+                            <CollectionSection
+                                collection={titleDetail.collection}
+                                currentMovieId={titleDetail.id}
+                            />
+                        )}
 
                         {/* Top Cast */}
                         {titleDetail.cast && titleDetail.cast.length > 0 && (
