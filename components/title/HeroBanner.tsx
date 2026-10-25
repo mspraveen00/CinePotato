@@ -197,7 +197,6 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                         <div
                             className="relative h-8 w-32 select-none cursor-pointer pointer-events-auto"
                             onDoubleClick={handleLogoDoubleClick}
-                            title={logos && logos.length > 1 ? "Double click to change logo" : undefined}
                         >
                             <img
                                 src={getResizedImage(currentLogo, "logo")}
@@ -219,7 +218,6 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                 className="absolute inset-x-0 top-0 h-[80%] md:h-[90%] z-0 select-none cursor-pointer pointer-events-auto"
                 style={{ opacity: bannerOpacity, y: bannerY }}
                 onDoubleClick={openGallery}
-                title={backdropImages && backdropImages.length > 1 ? "Double click to view full gallery (← → arrow keys to switch)" : "Double click to view full gallery"}
             >
                 <div className="overflow-hidden h-full w-full" ref={emblaRef}>
                     <div className="flex h-full w-full touch-pan-y">
@@ -272,7 +270,6 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                         className="w-32 sm:w-40 md:w-64 aspect-[2/3] relative rounded-lg shadow-2xl shadow-black/50 overflow-hidden border border-neutral-700/50 flex-shrink-0 select-none cursor-pointer pointer-events-auto md:-mb-12"
                         style={{ scale: posterScale, y: posterY, opacity: posterOpacity }}
                         onDoubleClick={handlePosterDoubleClick}
-                        title={posters && posters.length > 1 ? "Double click to change poster" : undefined}
                     >
                         <img
                             src={getResizedImage(currentPoster, "poster")}
@@ -294,7 +291,6 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                                 <div
                                     className="relative h-20 sm:h-24 md:h-32 w-48 sm:w-64 md:w-96 mb-2 md:mb-4 origin-left select-none cursor-pointer pointer-events-auto"
                                     onDoubleClick={handleLogoDoubleClick}
-                                    title={logos && logos.length > 1 ? "Double click to change logo" : undefined}
                                 >
                                     <img
                                         src={getResizedImage(currentLogo, "logo")}
