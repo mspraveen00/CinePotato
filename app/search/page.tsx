@@ -63,48 +63,133 @@ function SearchPageContent() {
     )
     const [isFiltersCollapsed, setIsFiltersCollapsed] = React.useState(false)
 
-    // Sync query from URL when navigating back/forward
-    React.useEffect(() => {
-        const urlQ = searchParams.get("q") || ""
-        if (urlQ !== query) {
-            setQuery(urlQ)
-        }
-    }, [searchParams])
+    const lastSyncedQueryRef = React.useRef(initialQuery)
 
     const setActiveType = React.useCallback((newType: MediaType) => {
-        const params = new URLSearchParams(searchParams.toString())
+        const params = new URLSearchParams(window.location.search)
         if (newType === "movie") {
             params.delete("type")
         } else {
             params.set("type", newType)
         }
+        if (query.trim()) {
+            params.set("q", query.trim())
+        } else {
+            params.delete("q")
+        }
+        lastSyncedQueryRef.current = query
         router.replace(`${pathname}?${params.toString()}`, { scroll: false })
-    }, [pathname, router, searchParams])
+    }, [pathname, router, query])
+
+    const handleClear = React.useCallback(() => {
+        setQuery("")
+        lastSyncedQueryRef.current = ""
+        setActiveFilters(prev => ({ ...(prev || {}), query: "", mediaTypes: [activeType] } as SearchFilters))
+        setResults([])
+        const params = new URLSearchParams(window.location.search)
+        params.delete("q")
+        const queryString = params.toString()
+        const newUrl = queryString ? `${pathname}?${queryString}` : pathname
+        window.history.replaceState(null, "", newUrl)
+    }, [activeType, pathname])
+
+    const handleSelectRecent = React.useCallback((selectedQuery: string) => {
+        setQuery(selectedQuery)
+        addRecentSearch(selectedQuery)
+        lastSyncedQueryRef.current = selectedQuery
+        setActiveFilters(prev => ({ ...(prev || {}), query: selectedQuery, mediaTypes: [activeType] } as SearchFilters))
+        setMode("recent")
+        const params = new URLSearchParams(window.location.search)
+        params.set("q", selectedQuery)
+        const queryString = params.toString()
+        const newUrl = queryString ? `${pathname}?${queryString}` : pathname
+        window.history.replaceState(null, "", newUrl)
+    }, [activeType, addRecentSearch, pathname])
+
+    const handleSubmit = React.useCallback((submittedQuery: string) => {
+        addRecentSearch(submittedQuery)
+        const trimmed = submittedQuery.trim()
+        if (trimmed) {
+            setActiveFilters(prev => ({ ...(prev || {}), query: trimmed, mediaTypes: [activeType] } as SearchFilters))
+            setMode("recent")
+        }
+        if (lastSyncedQueryRef.current !== submittedQuery) {
+            lastSyncedQueryRef.current = submittedQuery
+            const params = new URLSearchParams(window.location.search)
+            if (trimmed) {
+                params.set("q", trimmed)
+            } else {
+                params.delete("q")
+            }
+            const queryString = params.toString()
+            const newUrl = queryString ? `${pathname}?${queryString}` : pathname
+            window.history.replaceState(null, "", newUrl)
+        }
+    }, [activeType, addRecentSearch, pathname])
 
     // Debounce query update - ONLY for global search bar
     React.useEffect(() => {
         const timer = setTimeout(() => {
-            if (activeFilters?.query !== query) {
-                if (query) {
-                    setActiveFilters(prev => ({ ...(prev || {}), query, mediaTypes: [activeType] } as SearchFilters))
-                    setMode("recent") // Switch to results view behavior if you type in global search
+            const trimmed = query.trim()
+            if (activeFilters?.query !== trimmed) {
+                if (trimmed) {
+                    setActiveFilters(prev => ({ ...(prev || {}), query: trimmed, mediaTypes: [activeType] } as SearchFilters))
+                    setMode("recent")
                 } else if (activeFilters?.query) {
-                    // if query is empty, clear active filters query
                     setActiveFilters(prev => ({ ...(prev || {}), query: "", mediaTypes: [activeType] } as SearchFilters))
                 }
             }
 
-            // Sync query to URL
-            const urlQ = searchParams.get("q") || ""
-            if (urlQ !== query) {
-                const params = new URLSearchParams(searchParams.toString())
-                if (query) params.set("q", query)
-                else params.delete("q")
-                router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+            // Sync query to URL shallowly without triggering router transitions that disrupt typing
+            if (lastSyncedQueryRef.current !== query) {
+                lastSyncedQueryRef.current = query
+                const params = new URLSearchParams(window.location.search)
+                if (trimmed) {
+                    params.set("q", trimmed)
+                } else {
+                    params.delete("q")
+                }
+                const queryString = params.toString()
+                const newUrl = queryString ? `${pathname}?${queryString}` : pathname
+                window.history.replaceState(null, "", newUrl)
             }
-        }, 500)
+        }, 350)
         return () => clearTimeout(timer)
-    }, [query, activeType, activeFilters?.query, searchParams, pathname, router])
+    }, [query, activeType, activeFilters?.query, pathname])
+
+    // Keep queryRef up to date with the latest query without re-triggering effects
+    const queryRef = React.useRef(query)
+    React.useEffect(() => {
+        queryRef.current = query
+    }, [query])
+
+    // Sync query from URL ONLY on external navigation (back/forward or external links)
+    React.useEffect(() => {
+        const urlQ = searchParams.get("q") || ""
+        // Ignore if this matches what we already synced or if it matches current input (ignoring trailing spaces)
+        if (urlQ === lastSyncedQueryRef.current || urlQ.trim() === queryRef.current.trim()) {
+            return
+        }
+        lastSyncedQueryRef.current = urlQ
+        setQuery(urlQ)
+        setActiveFilters(prev => ({ ...(prev || {}), query: urlQ, mediaTypes: [activeType] } as SearchFilters))
+    }, [searchParams, activeType])
+
+    // Listen to browser popstate (back/forward history)
+    React.useEffect(() => {
+        const handlePopState = () => {
+            const params = new URLSearchParams(window.location.search)
+            const urlQ = params.get("q") || ""
+            if (urlQ === lastSyncedQueryRef.current || urlQ.trim() === queryRef.current.trim()) {
+                return
+            }
+            lastSyncedQueryRef.current = urlQ
+            setQuery(urlQ)
+            setActiveFilters(prev => ({ ...(prev || {}), query: urlQ, mediaTypes: [activeType] } as SearchFilters))
+        }
+        window.addEventListener("popstate", handlePopState)
+        return () => window.removeEventListener("popstate", handlePopState)
+    }, [activeType])
 
     // Update filters when active type changes (reset/default)
     React.useEffect(() => {
@@ -124,6 +209,8 @@ function SearchPageContent() {
 
     // Mock Search Effect
     React.useEffect(() => {
+        let isCancelled = false
+
         const performSearch = async () => {
             // Only search if we have active filters OR a global query
             if (!activeFilters && !query) {
@@ -132,60 +219,69 @@ function SearchPageContent() {
             }
 
             const currentFilters = activeFilters || { query, mediaTypes: [activeType] }
-            const searchQuery = currentFilters.query || query;
+            const searchQuery = (currentFilters.query || query).trim()
 
             if (!searchQuery) {
-                setResults([]);
-                return;
+                setResults([])
+                return
             }
 
             setError(null)
             setIsLoading(true)
 
             try {
-                const typeToSearch = currentFilters.mediaTypes?.[0] || activeType;
-                const searchResults = await searchTitles(searchQuery, typeToSearch);
+                const typeToSearch = currentFilters.mediaTypes?.[0] || activeType
+                const searchResults = await searchTitles(searchQuery, typeToSearch)
+
+                if (isCancelled) return
 
                 const filteredResults = searchResults.filter(item => {
-                    if (item.mediaType !== typeToSearch) return false;
+                    if (item.mediaType !== typeToSearch) return false
 
                     // Apply Advanced Filters
-                    if (currentFilters.minRating && (item.rating || 0) < currentFilters.minRating) return false;
+                    if (currentFilters.minRating && (item.rating || 0) < currentFilters.minRating) return false
 
                     if (currentFilters.genres && currentFilters.genres.length > 0) {
-                        if (!item.genreIds || !currentFilters.genres.some(g => item.genreIds!.includes(g))) return false;
+                        if (!item.genreIds || !currentFilters.genres.some(g => item.genreIds!.includes(g))) return false
                     }
 
                     if (currentFilters.releaseDecade) {
-                        if (!item.releaseDate) return false;
-                        const year = parseInt(item.releaseDate.split('-')[0]);
+                        if (!item.releaseDate) return false
+                        const year = parseInt(item.releaseDate.split('-')[0])
                         if (currentFilters.releaseYear) {
-                            if (year !== currentFilters.releaseYear) return false;
+                            if (year !== currentFilters.releaseYear) return false
                         } else {
-                            if (year < currentFilters.releaseDecade || year >= currentFilters.releaseDecade + 10) return false;
+                            if (year < currentFilters.releaseDecade || year >= currentFilters.releaseDecade + 10) return false
                         }
                     } else if (currentFilters.releaseYear) {
-                        if (!item.releaseDate) return false;
-                        const year = parseInt(item.releaseDate.split('-')[0]);
-                        if (year !== currentFilters.releaseYear) return false;
+                        if (!item.releaseDate) return false
+                        const year = parseInt(item.releaseDate.split('-')[0])
+                        if (year !== currentFilters.releaseYear) return false
                     }
 
-                    if (currentFilters.minVotes && (item.voteCount || 0) < currentFilters.minVotes) return false;
+                    if (currentFilters.minVotes && (item.voteCount || 0) < currentFilters.minVotes) return false
 
-                    return true;
-                });
+                    return true
+                })
 
-                setResults(filteredResults);
+                setResults(filteredResults)
             } catch (error: any) {
-                console.error("Search failed", error);
-                setError(error.message || "An unexpected error occurred while searching.");
-                setResults([]);
+                if (isCancelled) return
+                console.error("Search failed", error)
+                setError(error.message || "An unexpected error occurred while searching.")
+                setResults([])
             } finally {
-                setIsLoading(false)
+                if (!isCancelled) {
+                    setIsLoading(false)
+                }
             }
         }
 
         performSearch()
+
+        return () => {
+            isCancelled = true
+        }
     }, [activeFilters, sort]) // Removed 'filters' and 'activeType' from dependency to stop auto-search on UI change
 
     return (
@@ -195,8 +291,8 @@ function SearchPageContent() {
                 <SearchBar
                     value={query}
                     onChange={setQuery}
-                    onSubmit={addRecentSearch}
-                    onClear={() => setQuery("")}
+                    onSubmit={handleSubmit}
+                    onClear={handleClear}
                 />
                 <div className="absolute top-full left-0 right-0 h-4 bg-gradient-to-b from-black/90 to-transparent pointer-events-none" />
             </div>
@@ -242,10 +338,7 @@ function SearchPageContent() {
                 {mode === "recent" && !query && results.length === 0 && (
                     <RecentSearches
                         searches={recentSearches}
-                        onSelect={(q) => {
-                            setQuery(q)
-                            addRecentSearch(q)
-                        }}
+                        onSelect={handleSelectRecent}
                         onClear={() => {
                             setRecentSearches([])
                             localStorage.removeItem("cinepotato_recent_searches")
