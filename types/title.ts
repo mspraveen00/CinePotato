@@ -55,6 +55,17 @@ export interface OMDbRatings {
     rottenTomatoesUrl?: string; // Native URL directly from OMDb!
 }
 
+export interface KnownForCredit {
+    id: string;
+    title: string;
+    posterUrl: string;
+    mediaType: 'movie' | 'tv';
+    year?: number;
+    rating?: number;
+    role?: string;
+    voteCount?: number;
+}
+
 export interface TitleDetail {
     id: string;
     title: string;
@@ -74,4 +85,6 @@ export interface TitleDetail {
     omdbRatings?: OMDbRatings;
     imdbId?: string;
     mediaType?: 'movie' | 'tv' | 'game';
+    knownFor?: KnownForCredit[];
 }
+

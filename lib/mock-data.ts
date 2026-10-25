@@ -79,6 +79,26 @@ export function generateMockPersonDetail(id: string): TitleDetail {
         runtime: "N/A",
         genres: ["Acting"],
         rating: 0,
-        logos: undefined
+        logos: undefined,
+        knownFor: [
+            {
+                id: "1",
+                title: "Mock Blockbuster",
+                posterUrl: "https://image.tmdb.org/t/p/w500/c24sv2weTHPsmDa7jEMN0m2P3RT.jpg",
+                mediaType: "movie",
+                year: 2021,
+                rating: 8.4,
+                role: "Lead Role"
+            },
+            {
+                id: "2",
+                title: "Mock Sci-Fi Adventure",
+                posterUrl: "https://image.tmdb.org/t/p/w500/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg",
+                mediaType: "movie",
+                year: 2022,
+                rating: 7.9,
+                role: "Hero"
+            }
+        ]
     }
 }
