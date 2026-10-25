@@ -92,118 +92,40 @@ interface UserListsContextType {
     removeUserRating: (itemId: number | string) => void;
 }
 
-// --- Mock Data ---
+// --- Routing Helper ---
 
-const MOCK_ITEMS: ListItem[] = [
-    {
-        id: 27205,
-        title: "Inception",
-        poster_path: "/e9D2FlSJq1h4u5EwtZv6ZlP5l1K.jpg",
-        backdrop_path: "/s3TBrRGB1iav7gFOCNx3H31MoES.jpg",
-        media_type: "movie",
-        release_year: 2010,
-        runtime_or_episodes: "2h 28m",
-        content_rating: "PG-13",
-        rating_imdb: 8.8,
-        rating_metacritic: 74,
-        rating_rotten_tomatoes: 87,
-        rating_popcornmeter: 91,
-        rating_tmdb: 8.4,
-        rating_user: 9,
-        genres: ["Action", "Sci-Fi"],
-        added_at: 1700000000000
-    },
-    {
-        id: 157336,
-        title: "Interstellar",
-        poster_path: "/gEU2QniL6E8ahDaNBADBzOLDOkJ.jpg",
-        backdrop_path: "/xJHokMBLkbke0umzh2O8C1dy5.jpg",
-        media_type: "movie",
-        release_year: 2014,
-        runtime_or_episodes: "2h 49m",
-        content_rating: "PG-13",
-        rating_imdb: 8.7,
-        rating_metacritic: 74,
-        rating_rotten_tomatoes: 73,
-        rating_popcornmeter: 86,
-        rating_tmdb: 8.4,
-        rating_user: 9,
-        genres: ["Adventure", "Drama", "Sci-Fi"],
-        added_at: 1700000000001
-    },
-    {
-        id: 155,
-        title: "The Dark Knight",
-        poster_path: "/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
-        backdrop_path: "/nMKdUUepR0i5zn0y1T4CsSB5chy.jpg",
-        media_type: "movie",
-        release_year: 2008,
-        runtime_or_episodes: "2h 32m",
-        content_rating: "PG-13",
-        rating_imdb: 9.0,
-        rating_metacritic: 84,
-        rating_rotten_tomatoes: 94,
-        rating_popcornmeter: 94,
-        rating_tmdb: 8.5,
-        rating_user: 10,
-        genres: ["Action", "Crime", "Drama"],
-        added_at: 1700000000002
-    },
-    {
-        id: 1399,
-        title: "Game of Thrones",
-        poster_path: "/u3bZgnGQ9T01sWNhyhoK9iqHVII.jpg",
-        backdrop_path: "/zZqpAXxVSBtxV9qPBcscfXBcL2w.jpg",
-        media_type: "tv",
-        release_year: 2011,
-        runtime_or_episodes: "73 eps",
-        content_rating: "TV-MA",
-        rating_imdb: 9.2,
-        rating_metacritic: 86,
-        rating_rotten_tomatoes: 89,
-        rating_popcornmeter: 91,
-        rating_tmdb: 8.4,
-        rating_user: 9,
-        genres: ["Sci-Fi & Fantasy", "Drama", "Action & Adventure"],
-        added_at: 1700000000003
-    },
-    {
-        id: 66732,
-        title: "Stranger Things",
-        poster_path: "/49WJfeN0moxb9IPfGn8AIqMGskD.jpg",
-        backdrop_path: "/56v2KjBlU4XaOv9rVYkOD82aLQ.jpg",
-        media_type: "tv",
-        release_year: 2016,
-        runtime_or_episodes: "34 eps",
-        content_rating: "TV-14",
-        rating_imdb: 8.7,
-        rating_metacritic: 74,
-        rating_rotten_tomatoes: 92,
-        rating_popcornmeter: 90,
-        rating_tmdb: 8.6,
-        rating_user: 8,
-        genres: ["Sci-Fi & Fantasy", "Mystery", "Drama"],
-        added_at: 1700000000004
-    },
-    {
-        id: 693134,
-        title: "Dune: Part Two",
-        poster_path: "/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg",
-        backdrop_path: "/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg",
-        media_type: "movie",
-        release_year: 2024,
-        runtime_or_episodes: "2h 46m",
-        content_rating: "PG-13",
-        rating_imdb: 8.8,
-        rating_metacritic: 79,
-        rating_rotten_tomatoes: 93,
-        rating_popcornmeter: 95,
-        rating_tmdb: 8.3,
-        rating_user: 10,
-        genres: ["Science Fiction", "Adventure"],
-        added_at: 1700000000005
+export function getItemHref(item: { id: number | string; media_type?: string }): string {
+    const type = (item.media_type || 'movie').toLowerCase();
+    if (type === 'tv' || type === 'episode') return `/tv/${item.id}`;
+    if (type === 'game' || type === 'games') return `/game/${item.id}`;
+    if (type === 'person') return `/person/${item.id}`;
+    return `/movie/${item.id}`;
+}
+
+// --- Data Sanitization ---
+
+const isDummyItem = (item: ListItem): boolean => {
+    if (!item) return true;
+    // Dummy entries from previous testing
+    if (typeof item.added_at === 'number' && item.added_at >= 1700000000000 && item.added_at <= 1700000000005) {
+        return true;
     }
-];
+    if (item.poster_path === '/e9D2FlSJq1h4u5EwtZv6ZlP5l1K.jpg' || item.poster_path === '/gEU2QniL6E8ahDaNBADBzOLDOkJ.jpg') {
+        return true;
+    }
+    const DUMMY_IDS = [27205, 157336, 155, 1399, 66732, 693134];
+    if (DUMMY_IDS.includes(item.id) && (!item.added_at || item.added_at < 1750000000000)) {
+        return true;
+    }
+    return false;
+};
+
+const sanitizeLists = (rawLists: UserList[]): UserList[] => {
+    return rawLists.map(list => ({
+        ...list,
+        items: (list.items || []).filter(item => !isDummyItem(item))
+    }));
+};
 
 const DEFAULT_FILTERS: FilterState = {
     sort: 'manual', // Default for bucketlist, others might override logic in component
@@ -219,7 +141,7 @@ const INITIAL_LISTS: UserList[] = [
         id: "ratings",
         name: "Ratings",
         type: "system",
-        items: [MOCK_ITEMS[0], MOCK_ITEMS[2], MOCK_ITEMS[3]],
+        items: [],
         description: "Your rated movies and TV shows",
         viewMode: 'wide',
         filters: { ...DEFAULT_FILTERS, sort: 'rating_user' }
@@ -228,7 +150,7 @@ const INITIAL_LISTS: UserList[] = [
         id: "favourites",
         name: "Favourites",
         type: "system",
-        items: [MOCK_ITEMS[1], MOCK_ITEMS[4], MOCK_ITEMS[5]], // Interstellar, Stranger Things, Dune Part Two
+        items: [],
         description: "Your favourite content",
         viewMode: 'wide',
         filters: { ...DEFAULT_FILTERS }
@@ -237,7 +159,7 @@ const INITIAL_LISTS: UserList[] = [
         id: "bucketlist",
         name: "BucketList",
         type: "system",
-        items: [MOCK_ITEMS[2], MOCK_ITEMS[0]], // Dark Knight, Inception
+        items: [],
         description: "Content you want to watch",
         viewMode: 'wide',
         filters: { ...DEFAULT_FILTERS, sort: 'manual' }
@@ -260,7 +182,8 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
         const saved = localStorage.getItem('userLists');
         if (saved) {
             try {
-                setLists(JSON.parse(saved));
+                const parsed = JSON.parse(saved);
+                setLists(sanitizeLists(parsed));
             } catch (e) {
                 console.error("Failed to load lists from localStorage", e);
             }
@@ -294,7 +217,7 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
                         description: row.description || '',
                         viewMode: row.view_mode || 'wide',
                         filters: row.filters || DEFAULT_FILTERS,
-                        items: Array.isArray(row.items) ? row.items : []
+                        items: Array.isArray(row.items) ? (row.items as ListItem[]).filter(item => !isDummyItem(item)) : []
                     }));
 
                     // Ensure all system lists exist even if user doesn't have them yet

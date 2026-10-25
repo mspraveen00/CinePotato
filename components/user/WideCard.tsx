@@ -1,8 +1,9 @@
 import React from 'react';
+import Link from 'next/link';
 import { MoreVertical, Star, Film, Monitor, Tv, Gamepad } from 'lucide-react';
-import { ListItem } from '@/lib/store/user-lists-store';
+import { ListItem, getItemHref } from '@/lib/store/user-lists-store';
 import { IMDbIcon, TMDBLogo, MetacriticIcon, RottenTomatoesIcon, PopcornIcon } from './RatingIcons';
-import { getResizedImage } from '@/lib/image-utils';
+import { getMediaImageUrl } from '@/lib/image-utils';
 
 interface WideCardProps {
     item: ListItem;
@@ -24,18 +25,19 @@ export function WideCard({ item, actions, variant = 'standard' }: WideCardProps)
     const isCompact = variant === 'compact';
     const heightClass = isCompact ? "md:h-[150px]" : "md:h-[180px]";
 
-
-
     return (
         <div className={`group relative h-[120px] ${heightClass}`}>
 
             {/* Main Content Container (Clipped) */}
-            <div className="absolute inset-0 flex bg-neutral-900 rounded-xl overflow-hidden border border-neutral-800 hover:border-neutral-700 transition-colors z-0">
+            <Link
+                href={getItemHref(item)}
+                className="absolute inset-0 flex bg-neutral-900 rounded-xl overflow-hidden border border-neutral-800 hover:border-neutral-700 transition-colors z-0 cursor-pointer"
+            >
                 {/* Left: Poster */}
                 <div className={`relative w-[70px] ${isCompact ? 'md:w-[90px]' : 'md:w-[120px]'} shrink-0 border-r border-neutral-800 z-10`}>
                     {item.poster_path ? (
                         <img
-                            src={getResizedImage(`https://image.tmdb.org/t/p/original${item.poster_path}`, "thumbnail")}
+                            src={getMediaImageUrl(item.poster_path, "thumbnail")}
                             alt={item.title}
                             className="absolute inset-0 w-full h-full object-cover"
                             loading="lazy"
@@ -54,7 +56,7 @@ export function WideCard({ item, actions, variant = 'standard' }: WideCardProps)
                     <div className="absolute inset-0 z-0">
                         {item.backdrop_path && (
                             <img
-                                src={getResizedImage(`https://image.tmdb.org/t/p/original${item.backdrop_path}`, "hero")}
+                                src={getMediaImageUrl(item.backdrop_path, "hero")}
                                 alt=""
                                 className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-50 transition-opacity"
                                 loading="lazy"
@@ -70,7 +72,7 @@ export function WideCard({ item, actions, variant = 'standard' }: WideCardProps)
 
                         {/* Top Section */}
                         <div>
-                            <h3 className={`text-sm ${isCompact ? 'md:text-lg' : 'md:text-xl'} font-bold text-white leading-tight line-clamp-1`}>{item.title}</h3>
+                            <h3 className={`text-sm ${isCompact ? 'md:text-lg' : 'md:text-xl'} font-bold text-white group-hover:text-blue-400 transition-colors leading-tight line-clamp-1`}>{item.title}</h3>
                             <div className="flex items-center gap-1.5 md:gap-2 mt-0.5 md:mt-1 text-xs md:text-sm text-neutral-400">
                                 <span className="flex items-center gap-1 uppercase tracking-wider text-[10px] md:text-xs font-semibold px-1.5 py-0.5 bg-white/10 rounded">
                                     {getMediaTypeIcon()} <span className="hidden md:inline">{item.media_type}</span>
@@ -130,10 +132,16 @@ export function WideCard({ item, actions, variant = 'standard' }: WideCardProps)
                         </div>
                     </div>
                 </div>
-            </div>
+            </Link>
 
             {/* Three-dot menu (Unclipped) */}
-            <div className="absolute top-2 right-2 z-20 flex items-center gap-1">
+            <div
+                className="absolute top-2 right-2 z-20 flex items-center gap-1"
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }}
+            >
                 {/* User Rating */}
                 {item.rating_user !== undefined && (
                     <div className={`flex items-center justify-center px-1.5 h-6 min-w-[24px] ${isCompact ? 'md:h-6 md:min-w-[24px] md:text-[11px]' : 'md:h-7 md:min-w-[30px] md:text-xs'} text-[10px] rounded-full bg-primary/20 border-2 border-primary text-primary font-bold font-mono shadow-lg shadow-primary/20 backdrop-blur-md`}>

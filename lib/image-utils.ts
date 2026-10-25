@@ -72,3 +72,16 @@ export function generateSrcSet(url: string, presets: { preset: ImagePreset; widt
         return `${sizedUrl} ${width}w`;
     }).join(", ");
 }
+
+/**
+ * Safely resolves an image path or full URL with the given preset.
+ * Works with relative TMDB paths (e.g. "/abc.jpg"), full TMDB URLs, and IGDB URLs.
+ */
+export function getMediaImageUrl(path?: string | null, preset: ImagePreset = "poster"): string {
+    if (!path) return "";
+    let fullUrl = path;
+    if (!path.startsWith('http://') && !path.startsWith('https://')) {
+        fullUrl = `https://image.tmdb.org/t/p/original${path.startsWith('/') ? '' : '/'}${path}`;
+    }
+    return getResizedImage(fullUrl, preset);
+}

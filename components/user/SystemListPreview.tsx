@@ -3,9 +3,9 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, ChevronRight } from 'lucide-react';
-import { UserList } from '@/lib/store/user-lists-store';
+import { UserList, getItemHref } from '@/lib/store/user-lists-store';
 import { cn } from '@/lib/utils';
-import { getResizedImage } from '@/lib/image-utils';
+import { getMediaImageUrl } from '@/lib/image-utils';
 
 interface SystemListPreviewProps {
     list: UserList;
@@ -32,17 +32,18 @@ export function SystemListPreview({ list }: SystemListPreviewProps) {
                 ) : (
                     <>
                         {list.items.map((item, index) => (
-                            <div
+                            <Link
                                 key={item.id}
+                                href={getItemHref(item)}
                                 className={cn(
-                                    "snap-start w-[140px] md:w-[160px] flex-shrink-0 group relative",
+                                    "snap-start w-[140px] md:w-[160px] flex-shrink-0 group relative cursor-pointer block",
                                     index === 0 && "ml-4 md:ml-8"
                                 )}
                             >
                                 <div className="aspect-[2/3] bg-neutral-800 rounded-lg overflow-hidden relative border border-neutral-800 shadow-sm transition-transform duration-300 group-hover:scale-105 group-hover:shadow-md">
                                     {item.poster_path ? (
                                         <img
-                                            src={getResizedImage(`https://image.tmdb.org/t/p/original${item.poster_path}`, "thumbnail")}
+                                            src={getMediaImageUrl(item.poster_path, "thumbnail")}
                                             alt={item.title}
                                             className="absolute inset-0 w-full h-full object-cover"
                                             loading="lazy"
@@ -55,7 +56,7 @@ export function SystemListPreview({ list }: SystemListPreviewProps) {
                                     )}
                                 </div>
                                 <p className="mt-2 text-sm font-medium text-white truncate group-hover:text-blue-400 transition-colors">{item.title}</p>
-                            </div>
+                            </Link>
                         ))}
 
                         {/* See All Card */}
