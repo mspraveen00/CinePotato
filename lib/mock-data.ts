@@ -80,6 +80,12 @@ export function generateMockPersonDetail(id: string): TitleDetail {
         genres: ["Acting"],
         rating: 0,
         logos: undefined,
+        mediaType: 'person',
+        birthday: '1980-05-15',
+        placeOfBirth: 'Mock City, Mockland',
+        knownForDepartment: 'Acting',
+        gender: 'Male',
+        profileImages: [],
         knownFor: [
             {
                 id: "1",

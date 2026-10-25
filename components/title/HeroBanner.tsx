@@ -31,7 +31,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
     } = titleDetail;
 
     // Helper function to generate Rotten Tomatoes URL
-    const getRottenTomatoesUrl = (titleStr: string, type?: 'movie' | 'tv' | 'game') => {
+    const getRottenTomatoesUrl = (titleStr: string, type?: 'movie' | 'tv' | 'game' | 'person') => {
         // Remove years in parentheses if they exist at the end e.g. "Title (2024)"
         let cleanTitle = titleStr.replace(/\(\d{4}\)$/, '').trim();
 
@@ -235,8 +235,9 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                                         decoding={index === 0 ? "auto" : "async"}
                                         fetchPriority={index === 0 ? "high" : "auto"}
                                     />
+
                                     {/* Feathered bottom edge to seamlessly blend into the black background */}
-                                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black to-transparent" />
+                                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black to-transparent pointer-events-none" />
                                 </motion.div>
                             </div>
                         ))}

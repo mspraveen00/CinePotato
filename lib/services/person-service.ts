@@ -12,6 +12,8 @@ interface TMDBPerson {
     profile_path: string;
     known_for_department: string;
     popularity: number;
+    gender?: number;
+    imdb_id?: string;
 }
 
 interface TMDBImage {
@@ -183,9 +185,18 @@ export async function getPersonDetail(id: string): Promise<TitleDetail | null> {
 
         // Use profiles as "backdrops" or just stick to profile_path? 
         // TitleDetail expects backdropImages. We can put some profile shots there.
-        const topProfiles = images.profiles
-            .slice(0, 5)
+        const profileImages = (images.profiles || [])
             .map(b => `https://image.tmdb.org/t/p/original${b.file_path}`);
+
+        if (profileImages.length === 0 && person.profile_path) {
+            profileImages.push(`https://image.tmdb.org/t/p/original${person.profile_path}`);
+        }
+
+        const genderMap: Record<number, string> = {
+            1: 'Female',
+            2: 'Male',
+            3: 'Non-binary',
+        };
 
         const knownFor = extractKnownForCredits(person.known_for_department, credits);
 
@@ -193,15 +204,23 @@ export async function getPersonDetail(id: string): Promise<TitleDetail | null> {
             id: String(person.id),
             title: person.name, // Map name to title
             overview: person.biography,
-            backdropImages: topProfiles,
+            backdropImages: profileImages.slice(0, 5),
+            profileImages,
             posterPath: person.profile_path
                 ? `https://image.tmdb.org/t/p/w500${person.profile_path}`
                 : "",
             releaseYear: person.birthday ? new Date(person.birthday).getFullYear() : 0, // Birth year
             runtime: "N/A",
             genres: [person.known_for_department], // Map department to genre
-            rating: 0, // Persons don't have vote_average usually, or we could use popularity?
+            rating: 0,
             knownFor,
+            mediaType: 'person',
+            birthday: person.birthday,
+            deathday: person.deathday,
+            placeOfBirth: person.place_of_birth,
+            knownForDepartment: person.known_for_department,
+            gender: person.gender ? genderMap[person.gender] : undefined,
+            imdbId: person.imdb_id,
         };
 
     } catch (error) {

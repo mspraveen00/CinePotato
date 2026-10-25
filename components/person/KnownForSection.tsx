@@ -20,7 +20,7 @@ export default function KnownForSection({ credits }: KnownForSectionProps) {
               Mask image creates a fade effect on both sides.
             */}
             <div
-                className="carousel-mask carousel-mask-title flex gap-4 overflow-x-auto pt-4 pb-4 scrollbar-hide -mx-4 px-4 md:-mx-[calc((100vw-100%)/2)] md:px-[calc((100vw-100%)/2)]"
+                className="flex gap-4 overflow-x-auto pt-2 pb-4 scrollbar-hide pl-1.5 pr-8 [-webkit-mask-image:linear-gradient(to_right,black_0%,black_calc(100%-64px),transparent_100%)] [mask-image:linear-gradient(to_right,black_0%,black_calc(100%-64px),transparent_100%)]"
             >
                 {credits.map((item) => {
                     const href = item.mediaType === 'tv' ? `/tv/${item.id}` : `/movie/${item.id}`;

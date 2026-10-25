@@ -84,7 +84,13 @@ export interface TitleDetail {
     episodeGroups?: EpisodeGroupList[];
     omdbRatings?: OMDbRatings;
     imdbId?: string;
-    mediaType?: 'movie' | 'tv' | 'game';
+    mediaType?: 'movie' | 'tv' | 'game' | 'person';
     knownFor?: KnownForCredit[];
+    birthday?: string;
+    deathday?: string | null;
+    placeOfBirth?: string;
+    knownForDepartment?: string;
+    gender?: string;
+    profileImages?: string[];
 }
 
