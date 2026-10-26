@@ -22,6 +22,8 @@ export default function Person3DGalleryModal({
 }: Person3DGalleryModalProps) {
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
     const containerRef = useRef<HTMLDivElement>(null);
+    const thumbnailScrollRef = useRef<HTMLDivElement>(null);
+    const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
     // Sync initialIndex when modal opens
     useEffect(() => {
@@ -29,6 +31,26 @@ export default function Person3DGalleryModal({
             setCurrentIndex(initialIndex);
         }
     }, [isOpen, initialIndex]);
+
+    // Auto-scroll to center active thumbnail and ensure first items are visible
+    useEffect(() => {
+        if (!isOpen) return;
+        if (!thumbnailScrollRef.current || !thumbnailRefs.current[currentIndex]) return;
+
+        const container = thumbnailScrollRef.current;
+        const thumbnail = thumbnailRefs.current[currentIndex];
+
+        if (!thumbnail) return;
+
+        const containerCenter = container.clientWidth / 2;
+        const thumbnailCenter = thumbnail.offsetLeft + thumbnail.clientWidth / 2;
+        const targetScroll = thumbnailCenter - containerCenter;
+
+        container.scrollTo({
+            left: Math.max(0, targetScroll),
+            behavior: 'smooth',
+        });
+    }, [currentIndex, isOpen]);
 
     const handlePrevious = useCallback(() => {
         setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
@@ -312,11 +334,11 @@ export default function Person3DGalleryModal({
 
                 {/* Bottom Thumbnail Strip / Dots */}
                 <div
-                    className="relative z-20 px-6 py-4 flex items-center justify-center gap-2 overflow-x-auto scrollbar-hide bg-gradient-to-t from-black/90 to-transparent"
+                    className="relative z-20 bg-gradient-to-t from-black/90 to-transparent"
                     onClick={(e) => e.stopPropagation()}
                 >
                     {total <= 12 ? (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center gap-2 px-6 py-4">
                             {images.map((_, index) => (
                                 <button
                                     key={index}
@@ -331,22 +353,29 @@ export default function Person3DGalleryModal({
                             ))}
                         </div>
                     ) : (
-                        <div className="flex items-center gap-2">
+                        <div
+                            ref={thumbnailScrollRef}
+                            className="flex items-center gap-2 overflow-x-auto scrollbar-hide px-6 py-4 w-full select-none"
+                            style={{ justifyContent: 'safe center' }}
+                        >
                             {images.map((src, index) => (
                                 <button
                                     key={index}
+                                    ref={(el) => { thumbnailRefs.current[index] = el; }}
                                     onClick={() => setCurrentIndex(index)}
                                     className={`relative flex-shrink-0 w-10 h-14 rounded-md overflow-hidden transition-all cursor-pointer ${
                                         index === currentIndex
-                                            ? 'ring-2 ring-white scale-110'
+                                            ? 'ring-2 ring-white scale-110 z-10 shadow-lg shadow-black/80'
                                             : 'opacity-50 hover:opacity-100'
                                     }`}
+                                    aria-label={`Go to photo ${index + 1}`}
                                 >
                                     <img
                                         src={getResizedImage(src, 'thumbnail')}
                                         alt=""
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full object-cover pointer-events-none select-none"
                                         loading="lazy"
+                                        draggable={false}
                                     />
                                 </button>
                             ))}
