@@ -38,6 +38,74 @@ export default function Person3DGalleryModal({
         setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
     }, [images.length]);
 
+    // Touch controls for mobile sliding
+    const touchStartX = useRef<number | null>(null);
+    const touchStartY = useRef<number | null>(null);
+    const touchStartTime = useRef<number>(0);
+    const isSwipingRef = useRef<boolean>(false);
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        if (images.length <= 1) return;
+        touchStartX.current = e.touches[0].clientX;
+        touchStartY.current = e.touches[0].clientY;
+        touchStartTime.current = Date.now();
+        isSwipingRef.current = false;
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (touchStartX.current === null || touchStartY.current === null) return;
+        const currentX = e.touches[0].clientX;
+        const currentY = e.touches[0].clientY;
+        const deltaX = currentX - touchStartX.current;
+        const deltaY = currentY - touchStartY.current;
+
+        // Mark as swiping if horizontal movement dominates and is perceptible
+        if (Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY)) {
+            isSwipingRef.current = true;
+        }
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        if (touchStartX.current === null || touchStartY.current === null) return;
+
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        const deltaX = touchEndX - touchStartX.current;
+        const deltaY = touchEndY - touchStartY.current;
+        const deltaTime = Date.now() - touchStartTime.current;
+
+        const absDeltaX = Math.abs(deltaX);
+        const absDeltaY = Math.abs(deltaY);
+
+        // Check if movement was primarily horizontal
+        const isHorizontal = absDeltaX > absDeltaY;
+        // Either dragged past 40px or quick flick (>=20px within 300ms)
+        const isDistanceSufficient = absDeltaX > 40;
+        const isFlick = absDeltaX > 20 && deltaTime < 300;
+
+        if (isHorizontal && (isDistanceSufficient || isFlick)) {
+            if (deltaX < 0) {
+                handleNext();
+            } else {
+                handlePrevious();
+            }
+        }
+
+        // Keep isSwipingRef true briefly to avoid firing card onClick on release
+        setTimeout(() => {
+            isSwipingRef.current = false;
+        }, 120);
+
+        touchStartX.current = null;
+        touchStartY.current = null;
+    };
+
+    const handleTouchCancel = () => {
+        touchStartX.current = null;
+        touchStartY.current = null;
+        isSwipingRef.current = false;
+    };
+
     // Keyboard navigation
     useEffect(() => {
         if (!isOpen) return;
@@ -116,25 +184,29 @@ export default function Person3DGalleryModal({
                 {/* Main 3D Stage Area */}
                 <div
                     ref={containerRef}
-                    className="relative flex-1 flex items-center justify-center overflow-hidden [perspective:1400px]"
+                    className="relative flex-1 flex items-center justify-center overflow-hidden [perspective:1400px] touch-pan-y"
                     onClick={(e) => e.stopPropagation()}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                    onTouchCancel={handleTouchCancel}
                 >
-                    {/* Navigation Arrow - Left */}
+                    {/* Navigation Arrow - Left (Desktop/Laptop only) */}
                     {total > 1 && (
                         <button
                             onClick={handlePrevious}
-                            className="absolute left-4 sm:left-8 z-40 p-3 sm:p-4 rounded-full bg-black/60 hover:bg-black/90 border border-neutral-700/60 text-white hover:text-primary transition-all shadow-2xl backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95"
+                            className="hidden md:flex absolute left-4 sm:left-8 z-40 p-3 sm:p-4 rounded-full bg-black/60 hover:bg-black/90 border border-neutral-700/60 text-white hover:text-primary transition-all shadow-2xl backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95 items-center justify-center"
                             title="Previous Photo (Left Arrow)"
                         >
                             <ChevronLeft size={28} />
                         </button>
                     )}
 
-                    {/* Navigation Arrow - Right */}
+                    {/* Navigation Arrow - Right (Desktop/Laptop only) */}
                     {total > 1 && (
                         <button
                             onClick={handleNext}
-                            className="absolute right-4 sm:right-8 z-40 p-3 sm:p-4 rounded-full bg-black/60 hover:bg-black/90 border border-neutral-700/60 text-white hover:text-primary transition-all shadow-2xl backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95"
+                            className="hidden md:flex absolute right-4 sm:right-8 z-40 p-3 sm:p-4 rounded-full bg-black/60 hover:bg-black/90 border border-neutral-700/60 text-white hover:text-primary transition-all shadow-2xl backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95 items-center justify-center"
                             title="Next Photo (Right Arrow)"
                         >
                             <ChevronRight size={28} />
@@ -170,7 +242,10 @@ export default function Person3DGalleryModal({
                                 <motion.div
                                     key={src}
                                     className="absolute cursor-pointer will-change-transform"
-                                    onClick={() => setCurrentIndex(index)}
+                                    onClick={() => {
+                                        if (isSwipingRef.current) return;
+                                        setCurrentIndex(index);
+                                    }}
                                     animate={{
                                         x: xOffset,
                                         z: zOffset,
@@ -197,9 +272,10 @@ export default function Person3DGalleryModal({
                                         <img
                                             src={getResizedImage(src, 'fullscreen')}
                                             alt={`${name} photo ${index + 1}`}
-                                            className="w-full h-full object-cover select-none"
+                                            className="w-full h-full object-cover select-none pointer-events-none"
                                             loading={Math.abs(offset) <= 1 ? 'eager' : 'lazy'}
                                             decoding="async"
+                                            draggable={false}
                                         />
 
                                         {/* Subtle gradient vignette to blend card edges */}
