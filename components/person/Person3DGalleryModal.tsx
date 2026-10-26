@@ -38,7 +38,7 @@ export default function Person3DGalleryModal({
         setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
     }, [images.length]);
 
-    // Touch controls for mobile sliding
+    // Touch controls for mobile sliding and tapping side images
     const touchStartX = useRef<number | null>(null);
     const touchStartY = useRef<number | null>(null);
     const touchStartTime = useRef<number>(0);
@@ -49,7 +49,6 @@ export default function Person3DGalleryModal({
         touchStartX.current = e.touches[0].clientX;
         touchStartY.current = e.touches[0].clientY;
         touchStartTime.current = Date.now();
-        isSwipingRef.current = false;
     };
 
     const handleTouchMove = (e: React.TouchEvent) => {
@@ -59,8 +58,8 @@ export default function Person3DGalleryModal({
         const deltaX = currentX - touchStartX.current;
         const deltaY = currentY - touchStartY.current;
 
-        // Mark as swiping if horizontal movement dominates and is perceptible
-        if (Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Mark as swiping if horizontal movement is significant and dominates
+        if (Math.abs(deltaX) > 20 && Math.abs(deltaX) > Math.abs(deltaY)) {
             isSwipingRef.current = true;
         }
     };
@@ -77,9 +76,8 @@ export default function Person3DGalleryModal({
         const absDeltaX = Math.abs(deltaX);
         const absDeltaY = Math.abs(deltaY);
 
-        // Check if movement was primarily horizontal
+        // 1. Sliding / Swipe Gesture
         const isHorizontal = absDeltaX > absDeltaY;
-        // Either dragged past 40px or quick flick (>=20px within 300ms)
         const isDistanceSufficient = absDeltaX > 40;
         const isFlick = absDeltaX > 20 && deltaTime < 300;
 
@@ -89,12 +87,37 @@ export default function Person3DGalleryModal({
             } else {
                 handlePrevious();
             }
-        }
+            isSwipingRef.current = true;
+            setTimeout(() => {
+                isSwipingRef.current = false;
+            }, 150);
+        } else if (absDeltaX < 15 && absDeltaY < 15 && deltaTime < 450) {
+            // 2. Touching / Tapping side images (behind main image on left & right screen edges)
+            const container = containerRef.current;
+            if (container) {
+                const rect = container.getBoundingClientRect();
+                const relX = touchEndX - rect.left;
+                const width = rect.width;
 
-        // Keep isSwipingRef true briefly to avoid firing card onClick on release
-        setTimeout(() => {
-            isSwipingRef.current = false;
-        }, 120);
+                const cardWidth = width < 640 ? 240 : width < 768 ? 320 : 380;
+                const leftThreshold = Math.max(width * 0.28, (width - cardWidth) / 2 + 20);
+                const rightThreshold = Math.min(width * 0.72, (width + cardWidth) / 2 - 20);
+
+                if (relX <= leftThreshold) {
+                    handlePrevious();
+                    isSwipingRef.current = true;
+                    setTimeout(() => {
+                        isSwipingRef.current = false;
+                    }, 150);
+                } else if (relX >= rightThreshold) {
+                    handleNext();
+                    isSwipingRef.current = true;
+                    setTimeout(() => {
+                        isSwipingRef.current = false;
+                    }, 150);
+                }
+            }
+        }
 
         touchStartX.current = null;
         touchStartY.current = null;
