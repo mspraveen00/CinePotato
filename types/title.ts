@@ -144,7 +144,7 @@ export interface TitleDetail {
     episodeGroups?: EpisodeGroupList[];
     omdbRatings?: OMDbRatings;
     imdbId?: string;
-    mediaType?: 'movie' | 'tv' | 'game' | 'person';
+    mediaType?: 'movie' | 'tv' | 'game' | 'person' | 'episode';
     knownFor?: KnownForCredit[];
     birthday?: string;
     deathday?: string | null;
@@ -161,5 +161,36 @@ export interface TitleDetail {
     watchProviders?: WatchProvidersData;
     recommendations?: RecommendationItem[];
     keywords?: KeywordItem[];
+    // Episode additions
+    episodeNumber?: number;
+    seasonNumber?: number;
+    seriesId?: string;
+    seriesTitle?: string;
+    seasonName?: string;
+    seasonPosterPath?: string | null;
+    airDate?: string | null;
+    stillPath?: string | null;
+    stills?: string[];
+    tmdbUrl?: string;
+}
+
+export interface EpisodeDetail extends TitleDetail {
+    episodeNumber: number;
+    seasonNumber: number;
+    seriesId: string;
+    seriesTitle: string;
+    seasonName?: string;
+    seasonPosterPath?: string | null;
+    airDate?: string | null;
+    stillPath?: string | null;
+    stills?: string[];
+    episodeType?: string;
+    productionCode?: string;
+    guestStars?: CastMember[];
+    regularCast?: CastMember[];
+    prevEpisode?: Episode | null;
+    nextEpisode?: Episode | null;
+    seasonEpisodes?: Episode[];
+    tmdbUrl?: string;
 }
 

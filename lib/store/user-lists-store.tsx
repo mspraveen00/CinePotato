@@ -28,6 +28,7 @@ export interface ListItem {
 
     genres?: string[];
     added_at: number; // Timestamp for sorting
+    custom_href?: string;
 }
 
 export type ViewMode = 'wide' | 'wide-3' | 'poster-2' | 'poster-3' | 'poster-4' | 'poster-5' | 'poster-6' | 'poster-7';
@@ -88,13 +89,15 @@ interface UserListsContextType {
         rating_popcornmeter?: number;
         rating_tmdb?: number;
         genres?: string[];
+        custom_href?: string;
     }, rating: number) => void;
     removeUserRating: (itemId: number | string) => void;
 }
 
 // --- Routing Helper ---
 
-export function getItemHref(item: { id: number | string; media_type?: string }): string {
+export function getItemHref(item: { id: number | string; media_type?: string; custom_href?: string }): string {
+    if (item.custom_href) return item.custom_href;
     const type = (item.media_type || 'movie').toLowerCase();
     if (type === 'tv' || type === 'episode') return `/tv/${item.id}`;
     if (type === 'game' || type === 'games') return `/game/${item.id}`;
@@ -431,6 +434,7 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
             rating_popcornmeter?: number;
             rating_tmdb?: number;
             genres?: string[];
+            custom_href?: string;
         },
         rating: number
     ) => {
@@ -448,6 +452,7 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
                             rating_user: cleanRating,
                             poster_path: itemData.poster_path || updatedItems[existingIndex].poster_path,
                             backdrop_path: itemData.backdrop_path || updatedItems[existingIndex].backdrop_path,
+                            custom_href: itemData.custom_href || updatedItems[existingIndex].custom_href,
                             added_at: Date.now()
                         };
                         return { ...list, items: updatedItems };
@@ -468,6 +473,7 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
                             rating_tmdb: itemData.rating_tmdb,
                             rating_user: cleanRating,
                             genres: itemData.genres,
+                            custom_href: itemData.custom_href,
                             added_at: Date.now()
                         };
                         return { ...list, items: [newItem, ...list.items] };

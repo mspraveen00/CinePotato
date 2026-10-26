@@ -150,8 +150,11 @@ export default function SeasonPageClient({
                                 <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity z-0" />
                             </div>
 
-                            {/* Card Content */}
-                            <div className="flex-1 flex flex-col lg:flex-row gap-6 p-4 sm:p-5 bg-neutral-900/40 backdrop-blur-xl hover:bg-neutral-800/60 rounded-3xl border border-white/5 hover:border-white/10 transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-2xl overflow-hidden relative">
+                            {/* Card Content - Links to Episode Title Page */}
+                            <Link
+                                href={`/tv/${id}/season/${currentSeason?.seasonNumber || ep.seasonNumber}/episode/${ep.episodeNumber}`}
+                                className="flex-1 flex flex-col lg:flex-row gap-6 p-4 sm:p-5 bg-neutral-900/40 backdrop-blur-xl hover:bg-neutral-800/60 rounded-3xl border border-white/5 hover:border-white/10 transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-2xl overflow-hidden relative cursor-pointer block"
+                            >
 
                                 {/* Ambient glow behind card */}
                                 <div className="absolute inset-0 bg-gradient-to-br from-amber-500/0 to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
@@ -215,7 +218,7 @@ export default function SeasonPageClient({
                                         {ep.overview || "No plot overview available."}
                                     </p>
                                 </div>
-                            </div>
+                            </Link>
                         </div>
                     ))}
                 </div>

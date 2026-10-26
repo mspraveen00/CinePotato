@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
-import { MoreVertical, Star, Play } from 'lucide-react';
+import { MoreVertical, Star, Play, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 import { HeroBannerProps } from '@/types/title';
 import { cn } from '@/lib/utils';
 import { getResizedImage } from '@/lib/image-utils';
@@ -32,10 +33,16 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
         trailers,
         certification,
         tagline,
+        seriesId,
+        seriesTitle,
+        seasonNumber,
+        episodeNumber,
+        seasonName,
+        tmdbUrl,
     } = titleDetail;
 
     // Helper function to generate Rotten Tomatoes URL
-    const getRottenTomatoesUrl = (titleStr: string, type?: 'movie' | 'tv' | 'game' | 'person') => {
+    const getRottenTomatoesUrl = (titleStr: string, type?: 'movie' | 'tv' | 'game' | 'person' | 'episode') => {
         // Remove years in parentheses if they exist at the end e.g. "Title (2024)"
         let cleanTitle = titleStr.replace(/\(\d{4}\)$/, '').trim();
 
@@ -45,7 +52,7 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
             .replace(/[^a-z0-9]+/g, '_') // replace spaces and other non-alphanumeric with underscore
             .replace(/^_+|_+$/g, ''); // trim underscores
 
-        const pathPrefix = type === 'tv' ? 'tv' : 'm';
+        const pathPrefix = (type === 'tv' || type === 'episode') ? 'tv' : 'm';
         return `https://www.rottentomatoes.com/${pathPrefix}/${slug}`;
     };
 
@@ -182,6 +189,22 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
 
     return (
         <div className="relative w-full h-[100svh] md:h-[100dvh] overflow-hidden bg-black">
+            {/* Top-left Back Navigation for Episodes */}
+            {mediaType === 'episode' && seriesId && seasonNumber && (
+                <motion.div
+                    className="absolute top-4 left-4 md:top-6 md:left-6 z-40"
+                    style={{ opacity: contentOpacity, y: contentY }}
+                >
+                    <Link
+                        href={`/tv/${seriesId}/season/${seasonNumber}`}
+                        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-neutral-300 hover:text-white hover:bg-black/80 hover:border-white/20 transition-all pointer-events-auto shadow-lg group"
+                    >
+                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                        <span className="text-xs sm:text-sm font-medium">Season {seasonNumber}</span>
+                    </Link>
+                </motion.div>
+            )}
+
             {/* Context Menu / 3-Dots */}
             <motion.div
                 className="absolute top-4 right-4 md:top-6 md:right-6 z-40"
@@ -198,25 +221,53 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
             {/* Sticky Header (Hidden initially) */}
             <motion.div
                 style={{ opacity: headerOpacity, y: headerY }}
-                className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-neutral-800 px-4 py-3 flex items-center justify-center pointer-events-none"
+                className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-neutral-800 px-4 py-3 flex items-center justify-between"
             >
-                <div className="container mx-auto flex items-center justify-center gap-4">
-                    {currentLogo ? (
-                        <div
-                            className="relative h-8 w-32 select-none cursor-pointer pointer-events-auto"
-                            onDoubleClick={handleLogoDoubleClick}
+                <div className="container mx-auto flex items-center justify-between gap-4">
+                    {mediaType === 'episode' && seriesId && seasonNumber ? (
+                        <Link
+                            href={`/tv/${seriesId}/season/${seasonNumber}`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-neutral-300 hover:text-white bg-white/10 hover:bg-white/20 transition-all pointer-events-auto shrink-0"
+                            title={`Back to Season ${seasonNumber}`}
                         >
-                            <img
-                                src={getResizedImage(currentLogo, "logo")}
-                                alt={title}
-                                className="w-full h-full object-contain object-center"
-                                loading="lazy"
-                                decoding="async"
-                            />
-                        </div>
+                            <ArrowLeft className="w-4 h-4" />
+                            <span className="hidden sm:inline text-xs font-medium">Season {seasonNumber}</span>
+                        </Link>
                     ) : (
-                        <h2 className="text-lg font-bold text-white truncate">{title}</h2>
+                        <div className="w-8 shrink-0" />
                     )}
+
+                    <div className="flex items-center justify-center gap-3 truncate">
+                        {currentLogo ? (
+                            <div className="flex items-center gap-2.5 truncate">
+                                <div
+                                    className="relative h-8 w-28 sm:w-32 select-none cursor-pointer pointer-events-auto shrink-0"
+                                    onDoubleClick={handleLogoDoubleClick}
+                                >
+                                    <img
+                                        src={getResizedImage(currentLogo, "logo")}
+                                        alt={title}
+                                        className="w-full h-full object-contain object-center"
+                                        loading="lazy"
+                                        decoding="async"
+                                    />
+                                </div>
+                                {mediaType === 'episode' && (
+                                    <span className="text-xs sm:text-sm font-semibold text-neutral-300 truncate max-w-[200px] sm:max-w-[320px]">
+                                        • S{seasonNumber}E{episodeNumber}: {title}
+                                    </span>
+                                )}
+                            </div>
+                        ) : (
+                            <h2 className="text-sm sm:text-lg font-bold text-white truncate max-w-[260px] sm:max-w-md">
+                                {mediaType === 'episode' && seriesTitle
+                                    ? `${seriesTitle} - S${seasonNumber}E${episodeNumber}: ${title}`
+                                    : title}
+                            </h2>
+                        )}
+                    </div>
+
+                    <div className="w-8 shrink-0" />
                 </div>
             </motion.div>
 
@@ -297,22 +348,56 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                         {/* Title / Logo & Tagline Lockup */}
                         <div className="mb-3 md:mb-4 relative -top-3 md:top-0 w-fit max-w-full flex flex-col items-center">
                             {currentLogo ? (
-                                <div
-                                    className="relative h-14 sm:h-20 md:h-32 select-none cursor-pointer pointer-events-auto"
-                                    onDoubleClick={handleLogoDoubleClick}
-                                >
-                                    <img
-                                        src={getResizedImage(currentLogo, "logo")}
-                                        alt={title}
-                                        className="h-full w-auto max-w-[190px] sm:max-w-[260px] md:max-w-[440px] object-contain object-center pointer-events-none"
-                                        loading="eager"
-                                        fetchPriority="high"
-                                    />
-                                </div>
+                                <>
+                                    <div
+                                        className="relative h-14 sm:h-20 md:h-32 select-none cursor-pointer pointer-events-auto"
+                                        onDoubleClick={handleLogoDoubleClick}
+                                    >
+                                        <img
+                                            src={getResizedImage(currentLogo, "logo")}
+                                            alt={title}
+                                            className="h-full w-auto max-w-[190px] sm:max-w-[260px] md:max-w-[440px] object-contain object-center pointer-events-none"
+                                            loading="eager"
+                                            fetchPriority="high"
+                                        />
+                                    </div>
+                                    {mediaType === 'episode' && (
+                                        <div className="mt-2 text-center max-w-[280px] sm:max-w-[420px] md:max-w-xl">
+                                            <span className="text-amber-500 font-mono font-bold text-xs sm:text-sm tracking-widest uppercase mr-2 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">
+                                                S{seasonNumber} • E{episodeNumber}
+                                            </span>
+                                            <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight drop-shadow-xl inline">
+                                                &ldquo;{title}&rdquo;
+                                            </h1>
+                                        </div>
+                                    )}
+                                </>
                             ) : (
-                                <h1 className="text-2xl sm:text-3xl md:text-6xl font-black text-white tracking-tight drop-shadow-xl mb-1 text-center">
-                                    {title}
-                                </h1>
+                                <div className="text-center">
+                                    {mediaType === 'episode' && seriesTitle && (
+                                        <div className="flex items-center justify-center gap-2 text-neutral-400 text-xs sm:text-sm font-medium uppercase tracking-wider mb-1.5">
+                                            <Link href={`/tv/${seriesId}`} className="hover:text-amber-400 transition-colors pointer-events-auto">
+                                                {seriesTitle}
+                                            </Link>
+                                            <span>•</span>
+                                            <Link href={`/tv/${seriesId}/season/${seasonNumber}`} className="hover:text-amber-400 transition-colors pointer-events-auto">
+                                                Season {seasonNumber}
+                                            </Link>
+                                        </div>
+                                    )}
+                                    <h1 className="text-2xl sm:text-3xl md:text-6xl font-black text-white tracking-tight drop-shadow-xl mb-1 text-center">
+                                        {mediaType === 'episode' ? (
+                                            <>
+                                                <span className="text-amber-500 font-mono text-xl sm:text-2xl md:text-5xl mr-2">
+                                                    E{episodeNumber}.
+                                                </span>
+                                                {title}
+                                            </>
+                                        ) : (
+                                            title
+                                        )}
+                                    </h1>
+                                </div>
                             )}
 
                             {/* Tagline */}
@@ -330,6 +415,15 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                                 <>
                                     <span className="bg-neutral-800/80 backdrop-blur-sm px-2 py-0.5 md:py-1 rounded text-neutral-200 border border-neutral-500/60 font-semibold text-[10px] sm:text-xs md:text-sm tracking-wide">
                                         {certification}
+                                    </span>
+                                    <span className="w-1 h-1 bg-neutral-500 rounded-full" />
+                                </>
+                            )}
+                            {/* Episode indicator if logo is used or not already showing */}
+                            {mediaType === 'episode' && !currentLogo && (
+                                <>
+                                    <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 md:py-1 rounded font-mono font-bold text-[10px] sm:text-xs md:text-sm">
+                                        S{seasonNumber} • E{episodeNumber}
                                     </span>
                                     <span className="w-1 h-1 bg-neutral-500 rounded-full" />
                                 </>
@@ -416,7 +510,10 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
 
                         {/* TMDB (always shown) */}
                         <a
-                            href={`https://www.themoviedb.org/${mediaType === 'game' ? 'movie' : (mediaType || 'movie')}/${id}`}
+                            href={tmdbUrl || (mediaType === 'episode' && seriesId && seasonNumber && episodeNumber
+                                ? `https://www.themoviedb.org/tv/${seriesId}/season/${seasonNumber}/episode/${episodeNumber}`
+                                : `https://www.themoviedb.org/${mediaType === 'game' ? 'movie' : (mediaType || 'movie')}/${id}`
+                            )}
                             target="_blank" rel="noopener noreferrer"
                             className="flex items-center gap-1 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer"
                             title="View on TMDB"
@@ -503,7 +600,9 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                 onSaveRating={(newRating) => {
                     setUserRating({
                         id,
-                        title,
+                        title: mediaType === 'episode' && seriesTitle
+                            ? `${seriesTitle}: S${seasonNumber}E${episodeNumber} - ${title}`
+                            : title,
                         poster_path: posterPath,
                         backdrop_path: backdropImages?.[0],
                         media_type: mediaType === 'game' ? 'game' : (mediaType || 'movie'),
@@ -511,7 +610,10 @@ export default function HeroBanner({ titleDetail }: HeroBannerProps) {
                         runtime_or_episodes: runtime,
                         rating_imdb: omdbRatings?.imdb ? parseFloat(omdbRatings.imdb) : undefined,
                         rating_tmdb: rating,
-                        genres
+                        genres,
+                        custom_href: mediaType === 'episode' && seriesId && seasonNumber && episodeNumber
+                            ? `/tv/${seriesId}/season/${seasonNumber}/episode/${episodeNumber}`
+                            : undefined
                     }, newRating);
                 }}
                 onRemoveRating={() => {

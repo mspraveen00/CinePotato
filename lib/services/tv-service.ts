@@ -1,6 +1,6 @@
 import { fetchTMDB } from '@/lib/api/tmdb';
 import { fetchOMDb } from '@/lib/api/omdb';
-import { TitleDetail, CastMember, CrewMember, OMDbRatings, TrailerVideo, WatchProvidersData, WatchProvidersByCountry, WatchProviderItem, RecommendationItem, KeywordItem } from '@/types/title';
+import { TitleDetail, EpisodeDetail, CastMember, CrewMember, OMDbRatings, TrailerVideo, WatchProvidersData, WatchProvidersByCountry, WatchProviderItem, RecommendationItem, KeywordItem } from '@/types/title';
 import { generateMockTVDetail, generateMockItems } from '@/lib/mock-data';
 
 interface TMDBTVShow {
@@ -306,7 +306,11 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
                 posterPath: s.poster_path ? `https://image.tmdb.org/t/p/w500${s.poster_path}` : null,
                 overview: s.overview,
             }))
-            .sort((a, b) => a.seasonNumber - b.seasonNumber);
+            .sort((a, b) => {
+                if (a.seasonNumber === 0 && b.seasonNumber !== 0) return 1;
+                if (b.seasonNumber === 0 && a.seasonNumber !== 0) return -1;
+                return a.seasonNumber - b.seasonNumber;
+            });
 
         const mappedEpisodeGroups = (tv.episode_groups?.results || [])
             .map(eg => ({
@@ -678,6 +682,260 @@ export async function getEpisodeGroupDetail(groupId: string): Promise<EpisodeGro
         };
     } catch (error) {
         console.error(`Failed to fetch episode group details for ID: ${groupId}:`, error);
+        return null;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Episode Detail Fetching
+// -----------------------------------------------------------------------------
+
+interface TMDBEpisodeFullResponse {
+    id: number;
+    name: string;
+    overview: string;
+    vote_average: number;
+    vote_count: number;
+    air_date: string | null;
+    episode_number: number;
+    season_number: number;
+    runtime: number | null;
+    still_path: string | null;
+    episode_type?: string;
+    production_code?: string;
+    images?: {
+        stills?: TMDBImage[];
+    };
+    credits?: {
+        cast?: TMDBCastMember[];
+        crew?: TMDBCrewMember[];
+        guest_stars?: TMDBCastMember[];
+    };
+    videos?: TMDBVideosResponse;
+    external_ids?: {
+        imdb_id: string | null;
+        tvdb_id?: number | null;
+    };
+}
+
+export async function getEpisodeDetail(tvId: string, seasonNumber: number, episodeNumber: number): Promise<EpisodeDetail | null> {
+    const useMock = process.env.USE_MOCK === 'true';
+
+    if (useMock) {
+        console.log(`[Mock Mode] Fetching episode details for TV ID: ${tvId}, S${seasonNumber}E${episodeNumber}`);
+        await new Promise(resolve => setTimeout(resolve, 300));
+        return null;
+    }
+
+    try {
+        console.log(`[Real Mode] Fetching Episode Data for TV ID: ${tvId}, S${seasonNumber}E${episodeNumber}`);
+
+        // Fetch episode data, parent TV details, and season episodes in parallel
+        const [epData, tvDetail, seasonEpisodes] = await Promise.all([
+            fetchTMDB<TMDBEpisodeFullResponse>(
+                `/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}?append_to_response=images,credits,videos,external_ids`
+            ),
+            getTVDetail(tvId),
+            getSeasonDetail(tvId, seasonNumber)
+        ]);
+
+        if (!epData || !tvDetail) {
+            return null;
+        }
+
+        const currentSeason = tvDetail.seasons?.find(s => s.seasonNumber === seasonNumber);
+        const seasonName = currentSeason?.name || `Season ${seasonNumber}`;
+        const seasonPosterPath = currentSeason?.posterPath || null;
+
+        // Determine Prev and Next episodes in current season
+        const currentIndex = seasonEpisodes.findIndex(e => e.episodeNumber === episodeNumber);
+        const prevEpisode = currentIndex > 0 ? seasonEpisodes[currentIndex - 1] : null;
+        const nextEpisode = currentIndex !== -1 && currentIndex < seasonEpisodes.length - 1 ? seasonEpisodes[currentIndex + 1] : null;
+
+        // Stills / Backdrops
+        const stills: string[] = [];
+        if (epData.still_path) {
+            stills.push(`https://image.tmdb.org/t/p/original${epData.still_path}`);
+        }
+        (epData.images?.stills || [])
+            .sort((a, b) => b.vote_average - a.vote_average)
+            .forEach(s => {
+                const fullUrl = `https://image.tmdb.org/t/p/original${s.file_path}`;
+                if (!stills.includes(fullUrl)) {
+                    stills.push(fullUrl);
+                }
+            });
+
+        const backdropImages = stills.length > 0 ? stills : (tvDetail.backdropImages || []);
+
+        // Posters (Season poster, episode still, and series poster)
+        const posters: string[] = [];
+        if (seasonPosterPath) {
+            posters.push(seasonPosterPath);
+        }
+        if (epData.still_path) {
+            posters.push(`https://image.tmdb.org/t/p/w500${epData.still_path}`);
+        }
+        if (tvDetail.posterPath && !posters.includes(tvDetail.posterPath)) {
+            posters.push(tvDetail.posterPath);
+        }
+        const primaryPoster = posters[0] || (epData.still_path ? `https://image.tmdb.org/t/p/w500${epData.still_path}` : tvDetail.posterPath);
+
+        // Runtime formatting
+        const runtimeMinutes = epData.runtime ?? (tvDetail.runtime ? parseInt(tvDetail.runtime, 10) : null);
+        let runtimeStr = "N/A";
+        if (runtimeMinutes && !isNaN(runtimeMinutes)) {
+            const h = Math.floor(runtimeMinutes / 60);
+            const m = runtimeMinutes % 60;
+            runtimeStr = h > 0 ? `${h}h ${m}m` : `${m}m`;
+        }
+
+        // Guest Stars
+        const guestStars: CastMember[] = (epData.credits?.guest_stars || [])
+            .sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
+            .map(actor => ({
+                id: actor.id,
+                name: actor.name,
+                character: actor.character,
+                profileImageUrl: actor.profile_path ? `https://image.tmdb.org/t/p/w500${actor.profile_path}` : null,
+            }));
+
+        // Regular Cast in Episode
+        const regularCast: CastMember[] = (epData.credits?.cast || [])
+            .sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
+            .slice(0, 15)
+            .map(actor => ({
+                id: actor.id,
+                name: actor.name,
+                character: actor.character,
+                profileImageUrl: actor.profile_path ? `https://image.tmdb.org/t/p/w500${actor.profile_path}` : null,
+            }));
+
+        const combinedCast = [...guestStars, ...regularCast];
+
+        // Crew
+        const crewMap = new Map<number, CrewMember & { jobs: Set<string> }>();
+        const episodeCrew = epData.credits?.crew || [];
+        const prioritizedJobs = ['Director', 'Writer', 'Teleplay by', 'Story by', 'Director of Photography', 'Editor', 'Original Music Composer'];
+
+        episodeCrew.forEach(c => {
+            if (!crewMap.has(c.id)) {
+                crewMap.set(c.id, {
+                    id: c.id,
+                    name: c.name,
+                    job: c.job,
+                    jobs: new Set([c.job]),
+                    profileImageUrl: c.profile_path ? `https://image.tmdb.org/t/p/w500${c.profile_path}` : null,
+                });
+            } else {
+                crewMap.get(c.id)!.jobs.add(c.job);
+            }
+        });
+
+        const crewMembers: CrewMember[] = Array.from(crewMap.values())
+            .sort((a, b) => {
+                const aHasTop = Array.from(a.jobs).some(j => prioritizedJobs.includes(j)) ? 1 : 0;
+                const bHasTop = Array.from(b.jobs).some(j => prioritizedJobs.includes(j)) ? 1 : 0;
+                return bHasTop - aHasTop;
+            })
+            .map(c => ({
+                id: c.id,
+                name: c.name,
+                job: Array.from(c.jobs).join(', '),
+                profileImageUrl: c.profileImageUrl,
+            }));
+
+        // Videos
+        let trailers: TrailerVideo[] = (epData.videos?.results || [])
+            .filter(v => v.site === 'YouTube' && ['Trailer', 'Teaser', 'Clip', 'Featurette', 'Behind the Scenes'].includes(v.type))
+            .map(v => ({
+                id: v.id,
+                key: v.key,
+                name: v.name,
+                site: v.site,
+                type: v.type,
+                official: v.official,
+            }));
+
+        if (trailers.length === 0 && tvDetail.trailers) {
+            trailers = tvDetail.trailers;
+        }
+
+        // OMDb Ratings Logic for this Episode
+        let omdbRatings: OMDbRatings | undefined;
+        let certification = tvDetail.certification;
+
+        if (epData.external_ids?.imdb_id) {
+            try {
+                const omdbData = await fetchOMDb<any>({ i: epData.external_ids.imdb_id, tomatoes: 'true' });
+                if (omdbData && omdbData.Response === 'True') {
+                    omdbRatings = {};
+                    if (omdbData.imdbRating && omdbData.imdbRating !== 'N/A') {
+                        omdbRatings.imdb = omdbData.imdbRating;
+                    }
+                    if (omdbData.Metascore && omdbData.Metascore !== 'N/A') {
+                        omdbRatings.metacritic = omdbData.Metascore;
+                    }
+                    if (omdbData.Ratings && Array.isArray(omdbData.Ratings)) {
+                        const rottenTomatoes = omdbData.Ratings.find((r: any) => r.Source === 'Rotten Tomatoes');
+                        if (rottenTomatoes && rottenTomatoes.Value) {
+                            omdbRatings.rottenTomatoes = rottenTomatoes.Value;
+                        }
+                    }
+                    if (omdbData.tomatoURL && omdbData.tomatoURL !== 'N/A') {
+                        omdbRatings.rottenTomatoesUrl = omdbData.tomatoURL;
+                    }
+                    if (omdbData.Rated && omdbData.Rated !== 'N/A') {
+                        certification = omdbData.Rated;
+                    }
+                }
+            } catch (error) {
+                console.error(`Failed to fetch OMDb ratings for episode ${epData.external_ids.imdb_id}:`, error);
+            }
+        }
+
+        const episodeTitleDetail: EpisodeDetail = {
+            id: String(epData.id),
+            title: epData.name || `Episode ${epData.episode_number}`,
+            overview: epData.overview || tvDetail.overview || '',
+            backdropImages,
+            posterPath: primaryPoster,
+            posters,
+            logos: tvDetail.logos,
+            releaseYear: epData.air_date ? new Date(epData.air_date).getFullYear() : tvDetail.releaseYear,
+            airDate: epData.air_date,
+            runtime: runtimeStr,
+            genres: tvDetail.genres || [],
+            rating: parseFloat((epData.vote_average || 0).toFixed(1)),
+            cast: combinedCast,
+            guestStars,
+            regularCast,
+            crew: crewMembers,
+            trailers,
+            certification,
+            omdbRatings,
+            imdbId: epData.external_ids?.imdb_id || undefined,
+            mediaType: 'episode',
+            episodeNumber: epData.episode_number,
+            seasonNumber: epData.season_number,
+            seriesId: tvId,
+            seriesTitle: tvDetail.title,
+            seasonName,
+            seasonPosterPath,
+            stillPath: epData.still_path ? `https://image.tmdb.org/t/p/w500${epData.still_path}` : null,
+            stills,
+            episodeType: epData.episode_type,
+            productionCode: epData.production_code,
+            prevEpisode,
+            nextEpisode,
+            seasonEpisodes,
+            watchProviders: tvDetail.watchProviders,
+            tmdbUrl: `https://www.themoviedb.org/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}`,
+        };
+
+        return episodeTitleDetail;
+    } catch (error) {
+        console.error(`Failed to fetch episode details for TV ID: ${tvId}, S${seasonNumber}E${episodeNumber}:`, error);
         return null;
     }
 }

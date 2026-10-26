@@ -52,7 +52,11 @@ export default async function EpisodeGroupPage({
 
             <div className="space-y-6">
                 {currentGroup.episodes.map((ep) => (
-                    <div key={ep.id} className="group flex flex-col sm:flex-row gap-6 bg-neutral-900/40 hover:bg-neutral-800/60 p-4 sm:p-6 rounded-2xl border border-neutral-800/50 transition-colors duration-300">
+                    <Link
+                        key={ep.id}
+                        href={`/tv/${id}/season/${ep.seasonNumber}/episode/${ep.episodeNumber}`}
+                        className="group flex flex-col sm:flex-row gap-6 bg-neutral-900/40 hover:bg-neutral-800/60 p-4 sm:p-6 rounded-2xl border border-neutral-800/50 hover:border-neutral-700 transition-all duration-300 cursor-pointer block"
+                    >
                         {/* Thumbnail */}
                         <div className="w-full sm:w-72 flex-shrink-0 relative overflow-hidden rounded-xl aspect-video bg-neutral-800">
                             {ep.stillPath ? (
@@ -104,7 +108,7 @@ export default async function EpisodeGroupPage({
                                 {ep.overview || "No description available for this episode."}
                             </p>
                         </div>
-                    </div>
+                    </Link>
                 ))}
             </div>
         </main>

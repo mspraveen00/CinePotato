@@ -19,10 +19,17 @@ interface PillData {
 }
 
 export default function SeasonsSection({ titleId, seasons = [], episodeGroups = [] }: SeasonsSectionProps) {
+    // Sort seasons to guarantee specials (season 0) are at the end
+    const sortedSeasons = [...seasons].sort((a, b) => {
+        if (a.seasonNumber === 0 && b.seasonNumber !== 0) return 1;
+        if (b.seasonNumber === 0 && a.seasonNumber !== 0) return -1;
+        return a.seasonNumber - b.seasonNumber;
+    });
+
     const defaultGroupState = "broadcast";
     const [selectedGroupType, setSelectedGroupType] = useState<string>(defaultGroupState);
     const [selectedPillId, setSelectedPillId] = useState<string>(
-        seasons.length > 0 ? String(seasons[0].seasonNumber) : ""
+        sortedSeasons.length > 0 ? String(sortedSeasons[0].seasonNumber) : ""
     );
 
     // For storing the fetched episodes based on standard seasons or episode groups
@@ -36,15 +43,15 @@ export default function SeasonsSection({ titleId, seasons = [], episodeGroups = 
 
     // Initial load: Set the broadcast season pills
     useEffect(() => {
-        if (selectedGroupType === defaultGroupState && seasons.length > 0) {
-            setActivePills(seasons.map(s => ({
+        if (selectedGroupType === defaultGroupState && sortedSeasons.length > 0) {
+            setActivePills(sortedSeasons.map(s => ({
                 id: String(s.seasonNumber),
                 name: s.name,
                 posterPath: s.posterPath,
                 episodeCount: s.episodeCount
             })));
-            if (!activePills.find(p => p.id === selectedPillId)) {
-                setSelectedPillId(String(seasons[0].seasonNumber));
+            if (!sortedSeasons.some(s => String(s.seasonNumber) === selectedPillId)) {
+                setSelectedPillId(String(sortedSeasons[0].seasonNumber));
             }
         }
     }, [selectedGroupType, seasons]);

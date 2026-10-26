@@ -19,8 +19,12 @@ export default async function SeasonPage({
     const seasonNum = parseInt(seasonNumber, 10);
     const episodes = await getSeasonDetail(id, seasonNum);
 
-    // Sort seasons by seasonNumber to ensure correct ordering
-    const sortedSeasons = titleDetail.seasons ? [...titleDetail.seasons].sort((a, b) => a.seasonNumber - b.seasonNumber) : [];
+    // Sort seasons by seasonNumber with Specials (season 0) placed at the end
+    const sortedSeasons = titleDetail.seasons ? [...titleDetail.seasons].sort((a, b) => {
+        if (a.seasonNumber === 0 && b.seasonNumber !== 0) return 1;
+        if (b.seasonNumber === 0 && a.seasonNumber !== 0) return -1;
+        return a.seasonNumber - b.seasonNumber;
+    }) : [];
 
     const currentSeason = sortedSeasons.find(s => s.seasonNumber === seasonNum);
     const currentIndex = sortedSeasons.findIndex(s => s.seasonNumber === seasonNum);
