@@ -92,6 +92,40 @@ export interface CollectionPart {
     rating: number;
 }
 
+export interface WatchProviderItem {
+    id: number;
+    name: string;
+    logoPath: string;
+}
+
+export interface WatchProvidersByCountry {
+    link?: string;
+    flatrate?: WatchProviderItem[];
+    rent?: WatchProviderItem[];
+    buy?: WatchProviderItem[];
+    free?: WatchProviderItem[];
+    ads?: WatchProviderItem[];
+}
+
+export interface WatchProvidersData {
+    results: Record<string, WatchProvidersByCountry>;
+}
+
+export interface RecommendationItem {
+    id: string;
+    title: string;
+    posterPath: string | null;
+    backdropPath: string | null;
+    rating: number;
+    releaseYear: number;
+    mediaType: 'movie' | 'tv';
+}
+
+export interface KeywordItem {
+    id: number;
+    name: string;
+}
+
 export interface TitleDetail {
     id: string;
     title: string;
@@ -123,5 +157,9 @@ export interface TitleDetail {
     certification?: string; // e.g., "PG-13", "R", "U/A 16+"
     collection?: CollectionInfo;
     tagline?: string;
+    // Phase 2 additions
+    watchProviders?: WatchProvidersData;
+    recommendations?: RecommendationItem[];
+    keywords?: KeywordItem[];
 }
 

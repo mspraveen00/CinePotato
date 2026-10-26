@@ -4,6 +4,9 @@ import { notFound } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import SeasonsSection from '@/components/title/SeasonsSection';
+import KeywordsList from '@/components/title/KeywordsList';
+import WatchProvidersSection from '@/components/title/WatchProvidersSection';
+import RecommendationsSection from '@/components/title/RecommendationsSection';
 
 export const revalidate = 3600; // Cache for 1 hour
 
@@ -36,6 +39,9 @@ export default async function TVPage({
                             <p className="text-neutral-300 leading-relaxed text-lg max-w-3xl">
                                 {titleDetail.overview}
                             </p>
+                            {titleDetail.keywords && titleDetail.keywords.length > 0 && (
+                                <KeywordsList keywords={titleDetail.keywords} />
+                            )}
                         </section>
 
                         {/* Seasons */}
@@ -145,6 +151,23 @@ export default async function TVPage({
                                     </Link>
                                 </div>
                             </section>
+                        )}
+
+                        {/* Where to Watch (Collapsible Dropdown) */}
+                        {titleDetail.watchProviders && (
+                            <WatchProvidersSection
+                                watchProviders={titleDetail.watchProviders}
+                                title={titleDetail.title}
+                            />
+                        )}
+
+                        {/* Recommendations / You Might Also Like */}
+                        {titleDetail.recommendations && titleDetail.recommendations.length > 0 && (
+                            <RecommendationsSection
+                                recommendations={titleDetail.recommendations}
+                                title={titleDetail.title}
+                                mediaType="tv"
+                            />
                         )}
                     </div>
                 </div>

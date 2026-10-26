@@ -18,19 +18,19 @@ export default function CollectionSection({ collection, currentMovieId }: Collec
     return (
         <section className="relative">
             {/* Collection Banner */}
-            <div className="relative rounded-xl overflow-hidden border border-neutral-800">
+            <div className="relative rounded-xl overflow-hidden border border-neutral-800 bg-neutral-900/40">
                 {/* Backdrop with gradient overlay */}
                 {collection.backdropPath && (
                     <div className="absolute inset-0 z-0">
                         <img
                             src={getResizedImage(collection.backdropPath, "hero")}
                             alt={collection.name}
-                            className="w-full h-full object-cover opacity-30"
+                            className="w-full h-full object-cover opacity-50"
                             loading="lazy"
                             decoding="async"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/40" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-black/20" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
                     </div>
                 )}
 

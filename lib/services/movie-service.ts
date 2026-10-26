@@ -1,6 +1,6 @@
 import { fetchTMDB } from '@/lib/api/tmdb';
 import { fetchOMDb } from '@/lib/api/omdb';
-import { TitleDetail, CastMember, CrewMember, OMDbRatings, TrailerVideo, CollectionInfo } from '@/types/title';
+import { TitleDetail, CastMember, CrewMember, OMDbRatings, TrailerVideo, CollectionInfo, WatchProvidersData, WatchProvidersByCountry, WatchProviderItem, RecommendationItem, KeywordItem } from '@/types/title';
 import { generateMockDetail, generateMockItems } from '@/lib/mock-data';
 
 interface TMDBMovie {
@@ -66,6 +66,41 @@ interface TMDBCollectionResponse {
     }[];
 }
 
+interface TMDBWatchProviderItem {
+    logo_path: string;
+    provider_id: number;
+    provider_name: string;
+    display_priority: number;
+}
+
+interface TMDBWatchProvidersResponse {
+    results: Record<string, {
+        link?: string;
+        flatrate?: TMDBWatchProviderItem[];
+        rent?: TMDBWatchProviderItem[];
+        buy?: TMDBWatchProviderItem[];
+        free?: TMDBWatchProviderItem[];
+        ads?: TMDBWatchProviderItem[];
+    }>;
+}
+
+interface TMDBRecommendationMovie {
+    id: number;
+    title: string;
+    poster_path: string | null;
+    backdrop_path: string | null;
+    vote_average: number;
+    release_date?: string;
+}
+
+interface TMDBRecommendationsResponse {
+    results: TMDBRecommendationMovie[];
+}
+
+interface TMDBKeywordsResponse {
+    keywords: { id: number; name: string }[];
+}
+
 interface TMDBImage {
     aspect_ratio: number;
     height: number;
@@ -116,13 +151,17 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
     try {
         console.log(`[Real Mode] Fetching Data for ID: ${id}`);
 
-        // 1. Fetch Movie Details with Images, Credits, Videos, and Release Dates via append_to_response
+        // 1. Fetch Movie Details with Images, Credits, Videos, Release Dates, Watch Providers, Recommendations, Similar, and Keywords
         const movie = await fetchTMDB<TMDBMovie & {
-            images: TMDBImagesResponse,
-            credits: TMDBCreditsResponse,
-            videos: TMDBVideosResponse,
-            release_dates: TMDBReleaseDatesResponse
-        }>(`/movie/${id}?append_to_response=images,credits,videos,release_dates`);
+            images: TMDBImagesResponse;
+            credits: TMDBCreditsResponse;
+            videos: TMDBVideosResponse;
+            release_dates: TMDBReleaseDatesResponse;
+            'watch/providers'?: TMDBWatchProvidersResponse;
+            recommendations?: TMDBRecommendationsResponse;
+            similar?: TMDBRecommendationsResponse;
+            keywords?: TMDBKeywordsResponse;
+        }>(`/movie/${id}?append_to_response=images,credits,videos,release_dates,watch/providers,recommendations,similar,keywords`);
         const images = movie.images || { backdrops: [], logos: [], posters: [] };
 
         // 2. Logo Logic
@@ -361,7 +400,67 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
             }
         }
 
-        // 10. Transform to Domain Model
+        // 10. Watch Providers Logic
+        let watchProviders: WatchProvidersData | undefined;
+        const rawProviders = movie['watch/providers']?.results;
+        if (rawProviders && Object.keys(rawProviders).length > 0) {
+            const mappedResults: Record<string, WatchProvidersByCountry> = {};
+            const mapProviderItems = (items?: TMDBWatchProviderItem[]): WatchProviderItem[] | undefined => {
+                if (!items || items.length === 0) return undefined;
+                return items.map(p => ({
+                    id: p.provider_id,
+                    name: p.provider_name,
+                    logoPath: `https://image.tmdb.org/t/p/original${p.logo_path}`,
+                }));
+            };
+
+            for (const [countryCode, data] of Object.entries(rawProviders)) {
+                mappedResults[countryCode] = {
+                    link: data.link,
+                    flatrate: mapProviderItems(data.flatrate),
+                    rent: mapProviderItems(data.rent),
+                    buy: mapProviderItems(data.buy),
+                    free: mapProviderItems(data.free),
+                    ads: mapProviderItems(data.ads),
+                };
+            }
+            watchProviders = { results: mappedResults };
+        }
+
+        // 11. Recommendations Logic (use recommendations, fallback/supplement with similar)
+        const combinedRecs = [
+            ...(movie.recommendations?.results || []),
+            ...(movie.similar?.results || []),
+        ];
+        const seenRecIds = new Set<number>();
+        const recommendations: RecommendationItem[] = [];
+
+        for (const rec of combinedRecs) {
+            if (rec.id === movie.id) continue;
+            if (seenRecIds.has(rec.id)) continue;
+            seenRecIds.add(rec.id);
+            if (!rec.poster_path) continue;
+
+            recommendations.push({
+                id: String(rec.id),
+                title: rec.title,
+                posterPath: `https://image.tmdb.org/t/p/w500${rec.poster_path}`,
+                backdropPath: rec.backdrop_path ? `https://image.tmdb.org/t/p/original${rec.backdrop_path}` : null,
+                rating: parseFloat(rec.vote_average.toFixed(1)),
+                releaseYear: rec.release_date ? new Date(rec.release_date).getFullYear() : 0,
+                mediaType: 'movie',
+            });
+
+            if (recommendations.length >= 20) break;
+        }
+
+        // 12. Keywords Logic
+        const keywords: KeywordItem[] = (movie.keywords?.keywords || []).map(k => ({
+            id: k.id,
+            name: k.name,
+        }));
+
+        // 13. Transform to Domain Model
         return {
             id: String(movie.id),
             title: movie.title,
@@ -387,6 +486,9 @@ export async function getMovieDetail(id: string): Promise<TitleDetail | null> {
             certification,
             collection,
             tagline: movie.tagline || undefined,
+            watchProviders,
+            recommendations: recommendations.length > 0 ? recommendations : undefined,
+            keywords: keywords.length > 0 ? keywords : undefined,
         };
 
     } catch (error) {

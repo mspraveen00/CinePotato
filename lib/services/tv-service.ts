@@ -1,6 +1,6 @@
 import { fetchTMDB } from '@/lib/api/tmdb';
 import { fetchOMDb } from '@/lib/api/omdb';
-import { TitleDetail, CastMember, CrewMember, OMDbRatings, TrailerVideo } from '@/types/title';
+import { TitleDetail, CastMember, CrewMember, OMDbRatings, TrailerVideo, WatchProvidersData, WatchProvidersByCountry, WatchProviderItem, RecommendationItem, KeywordItem } from '@/types/title';
 import { generateMockTVDetail, generateMockItems } from '@/lib/mock-data';
 
 interface TMDBTVShow {
@@ -54,6 +54,41 @@ interface TMDBContentRatingsResponse {
     }[];
 }
 
+interface TMDBWatchProviderItem {
+    logo_path: string;
+    provider_id: number;
+    provider_name: string;
+    display_priority: number;
+}
+
+interface TMDBWatchProvidersResponse {
+    results: Record<string, {
+        link?: string;
+        flatrate?: TMDBWatchProviderItem[];
+        rent?: TMDBWatchProviderItem[];
+        buy?: TMDBWatchProviderItem[];
+        free?: TMDBWatchProviderItem[];
+        ads?: TMDBWatchProviderItem[];
+    }>;
+}
+
+interface TMDBRecommendationTV {
+    id: number;
+    name: string;
+    poster_path: string | null;
+    backdrop_path: string | null;
+    vote_average: number;
+    first_air_date?: string;
+}
+
+interface TMDBTVRecommendationsResponse {
+    results: TMDBRecommendationTV[];
+}
+
+interface TMDBTVKeywordsResponse {
+    results: { id: number; name: string }[];
+}
+
 interface TMDBImage {
     aspect_ratio: number;
     height: number;
@@ -104,12 +139,16 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
         console.log(`[Real Mode] Fetching TV Data for ID: ${id}`);
 
         const tv = await fetchTMDB<TMDBTVShow & {
-            images: TMDBImagesResponse,
-            credits: TMDBCreditsResponse,
-            episode_groups: { results: TMDBEpisodeGroupList[] },
-            videos: TMDBVideosResponse,
-            content_ratings: TMDBContentRatingsResponse
-        }>(`/tv/${id}?append_to_response=images,credits,episode_groups,external_ids,videos,content_ratings`);
+            images: TMDBImagesResponse;
+            credits: TMDBCreditsResponse;
+            episode_groups: { results: TMDBEpisodeGroupList[] };
+            videos: TMDBVideosResponse;
+            content_ratings: TMDBContentRatingsResponse;
+            'watch/providers'?: TMDBWatchProvidersResponse;
+            recommendations?: TMDBTVRecommendationsResponse;
+            similar?: TMDBTVRecommendationsResponse;
+            keywords?: TMDBTVKeywordsResponse;
+        }>(`/tv/${id}?append_to_response=images,credits,episode_groups,external_ids,videos,content_ratings,watch/providers,recommendations,similar,keywords`);
         const images = tv.images || { backdrops: [], logos: [], posters: [] };
 
         // Logo Logic
@@ -344,6 +383,66 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
             }
         }
 
+        // Watch Providers Logic
+        let watchProviders: WatchProvidersData | undefined;
+        const rawProviders = tv['watch/providers']?.results;
+        if (rawProviders && Object.keys(rawProviders).length > 0) {
+            const mappedResults: Record<string, WatchProvidersByCountry> = {};
+            const mapProviderItems = (items?: TMDBWatchProviderItem[]): WatchProviderItem[] | undefined => {
+                if (!items || items.length === 0) return undefined;
+                return items.map(p => ({
+                    id: p.provider_id,
+                    name: p.provider_name,
+                    logoPath: `https://image.tmdb.org/t/p/original${p.logo_path}`,
+                }));
+            };
+
+            for (const [countryCode, data] of Object.entries(rawProviders)) {
+                mappedResults[countryCode] = {
+                    link: data.link,
+                    flatrate: mapProviderItems(data.flatrate),
+                    rent: mapProviderItems(data.rent),
+                    buy: mapProviderItems(data.buy),
+                    free: mapProviderItems(data.free),
+                    ads: mapProviderItems(data.ads),
+                };
+            }
+            watchProviders = { results: mappedResults };
+        }
+
+        // Recommendations Logic (use recommendations, fallback/supplement with similar)
+        const combinedRecs = [
+            ...(tv.recommendations?.results || []),
+            ...(tv.similar?.results || []),
+        ];
+        const seenRecIds = new Set<number>();
+        const recommendations: RecommendationItem[] = [];
+
+        for (const rec of combinedRecs) {
+            if (rec.id === tv.id) continue;
+            if (seenRecIds.has(rec.id)) continue;
+            seenRecIds.add(rec.id);
+            if (!rec.poster_path) continue;
+
+            recommendations.push({
+                id: String(rec.id),
+                title: rec.name,
+                posterPath: `https://image.tmdb.org/t/p/w500${rec.poster_path}`,
+                backdropPath: rec.backdrop_path ? `https://image.tmdb.org/t/p/original${rec.backdrop_path}` : null,
+                rating: parseFloat(rec.vote_average.toFixed(1)),
+                releaseYear: rec.first_air_date ? new Date(rec.first_air_date).getFullYear() : 0,
+                mediaType: 'tv',
+            });
+
+            if (recommendations.length >= 20) break;
+        }
+
+        // Keywords Logic — TV keywords are returned in `results`
+        const keywords: KeywordItem[] = (tv.keywords?.results || []).map(k => ({
+            id: k.id,
+            name: k.name,
+        }));
+
         return {
             id: String(tv.id),
             title: tv.name, // Map name to title
@@ -367,6 +466,9 @@ export async function getTVDetail(id: string): Promise<TitleDetail | null> {
             mediaType: 'tv',
             trailers: trailers.length > 0 ? trailers : undefined,
             certification,
+            watchProviders,
+            recommendations: recommendations.length > 0 ? recommendations : undefined,
+            keywords: keywords.length > 0 ? keywords : undefined,
         };
 
     } catch (error) {
