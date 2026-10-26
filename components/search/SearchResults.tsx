@@ -53,10 +53,13 @@ export function SearchResults({ results, isLoading, onResultClick }: SearchResul
             {results.map((result, index) => {
                 const Icon = MEDIA_ICONS[result.mediaType];
                 const colorClass = MEDIA_COLORS[result.mediaType];
+                const targetHref = result.mediaType === 'franchise'
+                    ? `/collection/${result.id}`
+                    : `/${result.mediaType}/${result.id}`;
 
                 return (
                     <Link
-                        href={`/${result.mediaType}/${result.id}`}
+                        href={targetHref}
                         key={result.id}
                         className="block group"
                         onClick={() => onResultClick?.(result)}

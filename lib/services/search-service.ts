@@ -106,24 +106,27 @@ export async function searchTitles(query: string, type?: MediaType): Promise<Sea
         if (type === 'movie') endpoint = '/search/movie';
         else if (type === 'tv') endpoint = '/search/tv';
         else if (type === 'person') endpoint = '/search/person';
+        else if (type === 'franchise') endpoint = '/search/collection';
 
-        const data = await fetchTMDB<TMDBSearchResponse>(`${endpoint}?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`);
+        // If multi-search, fetch multi and collection in parallel to include franchise results
+        const isMulti = !type || endpoint === '/search/multi';
 
-        return data.results
+        const [mainData, collectionData] = await Promise.all([
+            fetchTMDB<TMDBSearchResponse>(`${endpoint}?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`),
+            isMulti
+                ? fetchTMDB<TMDBSearchResponse>(`/search/collection?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`).catch(() => ({ results: [] } as any))
+                : Promise.resolve({ results: [] } as any),
+        ]);
+
+        const mainResults = mainData.results
             .filter(item => {
-                // If a specific endpoint was used, all returned items are valid.
-                // If using multi-search, filter out unwanted media types like collections or companies.
                 if (endpoint !== '/search/multi') return true;
-                
                 return item.media_type === 'movie' || item.media_type === 'tv' || item.media_type === 'person';
             })
             .map(item => {
                 const title = item.title || item.name || "Unknown Title";
                 const date = item.release_date || item.first_air_date;
-                // Inherit mediaType from type param if the specific endpoint was used (since TMDB omits it)
                 const mediaType = (item.media_type as MediaType) || type || 'movie';
-
-                // Use profile_path for person, poster_path for others
                 const imagePath = mediaType === 'person' ? item.profile_path : item.poster_path;
 
                 return {
@@ -145,6 +148,34 @@ export async function searchTitles(query: string, type?: MediaType): Promise<Sea
                     genreIds: item.genre_ids
                 };
             });
+
+        // Map collection results
+        const franchiseResults: SearchResult[] = (collectionData.results || []).slice(0, 3).map((item: any) => ({
+            id: String(item.id),
+            title: item.name || item.title || "Franchise Collection",
+            mediaType: 'franchise' as MediaType,
+            posterPath: item.poster_path
+                ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+                : undefined,
+            backdropPath: item.backdrop_path
+                ? `https://image.tmdb.org/t/p/original${item.backdrop_path}`
+                : undefined,
+            overview: item.overview || 'Franchise collection',
+            rating: 0,
+            popularity: item.popularity || 0,
+        }));
+
+        // In multi-search, place relevant franchise collections near the top if name strongly matches query
+        if (franchiseResults.length > 0) {
+            const queryNorm = query.toLowerCase().trim();
+            const directMatch = franchiseResults.find(f => f.title.toLowerCase().includes(queryNorm));
+            if (directMatch) {
+                return [directMatch, ...mainResults, ...franchiseResults.filter(f => f.id !== directMatch.id)];
+            }
+            return [...franchiseResults, ...mainResults];
+        }
+
+        return mainResults;
 
     } catch (error: any) {
         console.error("Search Service Error:", error);

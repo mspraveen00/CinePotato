@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { CollectionInfo } from '@/types/title';
 import { getResizedImage } from '@/lib/image-utils';
+import { ArrowRight } from 'lucide-react';
 
 interface CollectionSectionProps {
     collection: CollectionInfo;
@@ -44,13 +45,31 @@ export default function CollectionSection({ collection, currentMovieId }: Collec
                         <div className="h-px flex-1 bg-gradient-to-r from-amber-400/20 to-transparent" />
                     </div>
 
-                    <h3 className="text-lg md:text-xl font-bold text-white mb-1">
-                        {collection.name}
-                    </h3>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                        <div>
+                            <Link
+                                href={`/collection/${collection.id}`}
+                                className="group/title inline-flex items-center gap-2"
+                            >
+                                <h3 className="text-lg md:text-xl font-bold text-white group-hover/title:text-amber-400 transition-colors">
+                                    {collection.name}
+                                </h3>
+                                <ArrowRight className="w-4 h-4 text-neutral-500 group-hover/title:text-amber-400 group-hover/title:translate-x-0.5 transition-all" />
+                            </Link>
 
-                    <p className="text-neutral-400 text-xs md:text-sm mb-3">
-                        {progressLabel}
-                    </p>
+                            <p className="text-neutral-400 text-xs md:text-sm mt-0.5">
+                                {progressLabel}
+                            </p>
+                        </div>
+
+                        <Link
+                            href={`/collection/${collection.id}`}
+                            className="self-start sm:self-center inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900/90 hover:bg-amber-400 hover:text-black text-neutral-300 text-xs font-semibold border border-neutral-700/80 transition-all shadow-sm active:scale-95"
+                        >
+                            <span>Explore Full Franchise</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+                    </div>
 
                     {/* Movie Cards */}
                     <div
